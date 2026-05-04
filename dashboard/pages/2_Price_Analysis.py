@@ -383,7 +383,7 @@ with filter_col:
             </div>
         """, unsafe_allow_html=True)
 
-        if st.button("​", width='stretch', key=key):
+        if st.button("​", use_container_width=True, key=key):
             st.session_state.selected_category = cat_value
             st.rerun()
 
@@ -592,11 +592,11 @@ if len(df_time["snapshot_date"].unique()) > 1:
         if i % 2 == 0:
             with col1:
                 st.markdown(custom_title, unsafe_allow_html=True)
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig, use_container_width=True)
         else:
             with col2:
                 st.markdown(custom_title, unsafe_allow_html=True)
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig, use_container_width=True)
 else:
     st.info("⏳ Time series will populate after multiple daily pipeline runs.")
     fig = px.bar(
@@ -604,7 +604,7 @@ else:
         color_discrete_map=CATEGORY_COLORS,
         labels={"product_name": "Product", "avg_price": "Average Price (NZD)"}
     )
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
@@ -620,7 +620,7 @@ fig.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)"
 )
-st.plotly_chart(fig, width='stretch')
+st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 
@@ -976,7 +976,7 @@ with col1:
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         height=400, yaxis_title="Price (NZD)"
     )
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     fig = px.bar(
@@ -990,7 +990,7 @@ with col2:
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         height=400
     )
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 

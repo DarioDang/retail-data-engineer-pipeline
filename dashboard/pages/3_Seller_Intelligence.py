@@ -307,7 +307,7 @@ with col2:
     # Auto-play via config
     st.plotly_chart(
         fig,
-        width='stretch',
+        use_container_width=True,
         config={"displayModeBar": False}
     )
 
@@ -353,7 +353,7 @@ with col2:
                            showgrid=False, zeroline=False),
                 yaxis=dict(showticklabels=False, showgrid=False)
             )
-            st.plotly_chart(fig_bar, width='stretch',
+            st.plotly_chart(fig_bar, use_container_width=True,
                            config={"displayModeBar": False})
 
         with pctcol:
@@ -439,7 +439,7 @@ with col1:
                 tickfont=dict(color="white", size=10)
             )
         )
-        st.plotly_chart(fig_rating, width='stretch',
+        st.plotly_chart(fig_rating, use_container_width=True,
                        config={"displayModeBar": False})
 
         # Rating legend

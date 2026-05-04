@@ -301,7 +301,7 @@ with col1:
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)"
     )
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     st.markdown("""
@@ -387,7 +387,7 @@ with col2:
             )]
         )]
     )
-    st.plotly_chart(fig2, width='stretch', config={"displayModeBar": False})
+    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
 
     # Spacer 
     st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
@@ -467,7 +467,7 @@ fig.update_layout(
 )
 
 fig.update_traces(line_width=2.5)
-st.plotly_chart(fig, width='stretch')
+st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 

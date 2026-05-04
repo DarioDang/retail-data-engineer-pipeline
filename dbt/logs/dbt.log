@@ -1,0 +1,12 @@
+[0m12:13:18.733737 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1192f98d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11af439a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x119fab340>]}
+
+
+============================== 12:13:18.741211 | e098b437-e9db-4480-8628-301b5f8d2c26 ==============================
+[0m12:13:18.741211 [info ] [MainThread]: Running with dbt=1.11.8
+[0m12:13:18.741794 [debug] [MainThread]: running dbt with arguments {'empty': 'None', 'log_cache_events': 'False', 'invocation_command': 'dbt init retail_pipeline', 'version_check': 'True', 'partial_parse': 'True', 'introspect': 'True', 'cache_selected_only': 'False', 'debug': 'False', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'write_json': 'True', 'target_path': 'None', 'fail_fast': 'False', 'log_path': 'logs', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'use_experimental_parser': 'False', 'profiles_dir': '/Users/dazieldang/.dbt', 'use_colors': 'True', 'printer_width': '80', 'static_parser': 'True', 'no_print': 'None', 'warn_error': 'None', 'log_format': 'default', 'indirect_selection': 'eager'}
+[0m12:13:18.753053 [info ] [MainThread]: A project called retail_pipeline already exists here.
+[0m12:13:18.756038 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 0.17528117, "process_in_blocks": "0", "process_kernel_time": 0.162522, "process_mem_max_rss": "139100160", "process_out_blocks": "0", "process_user_time": 3.009242}
+[0m12:13:18.756589 [debug] [MainThread]: Command `dbt init` succeeded at 12:13:18.756497 after 0.18 seconds
+[0m12:13:18.757004 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1192f98d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11af434f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x11b9280a0>]}
+[0m12:13:18.757399 [debug] [MainThread]: Flushing usage events
+[0m12:13:19.986981 [debug] [MainThread]: An error was encountered while trying to flush usage events

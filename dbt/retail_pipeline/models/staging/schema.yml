@@ -1,0 +1,36 @@
+version: 2
+
+sources:
+  - name: raw_shopping
+    database: retail_pipeline
+    schema: raw_shopping
+    tables:
+      - name: electronic_products
+        description: "Raw shopping results loaded from S3 via dlt"
+
+models:
+  - name: stg_electronic_products
+    description: "Cleaned and normalized electronic products staging model"
+    columns:
+      - name: record_id
+        description: "Unique record identifier"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        tests:
+          - not_null
+      - name: category
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['laptop', 'phone', 'camera']
+      - name: price
+        tests:
+          - not_null
+      - name: seller
+        tests:
+          - not_null
+      - name: snapshot_date
+        tests:
+          - not_null

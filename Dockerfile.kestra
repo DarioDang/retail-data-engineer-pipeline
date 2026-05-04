@@ -1,0 +1,30 @@
+FROM kestra/kestra:latest
+
+USER root
+
+# Install system dependencies needed for building Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --upgrade pip
+
+# Install packages with pinned versions to avoid conflicts
+RUN pip install \
+    "numpy>=1.23.0" \
+    "pandas>=1.5.0" \
+    "pyarrow>=10.0.0" \
+    "boto3>=1.26.0" \
+    "s3fs>=2023.1.0" \
+    "python-dotenv>=1.0.0" \
+    "psycopg2-binary>=2.9.0" \
+    "sqlalchemy>=2.0.0" \
+    "serpapi>=0.1.5" \
+    "dlt[filesystem]>=0.3.0" \
+    "dlt[postgres]>=0.3.0" \
+    "dbt-postgres>=1.5.0" \
+    --quiet

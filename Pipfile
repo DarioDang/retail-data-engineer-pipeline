@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+dlt = {extras = ["postgres", "filesystem", "parquet"], version = "*"}
+python-dotenv = "*"
+jupyter = "*"
+ipykernel = "*"
+boto3 = "*"
+serpapi = "*"
+pyarrow = "*"
+s3fs = "*"
+dbt-postgres = "*"
+streamlit = "*"
+psycopg2-binary = "*"
+plotly = "*"
+pandas = "*"
+sqlalchemy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
+python_full_version = "3.10.0"

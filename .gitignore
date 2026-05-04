@@ -1,0 +1,14 @@
+.env
+retail-project/
+terraform/.terraform
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate
+terraform/.terraform.lock.hcl
+Pipfile.lock
+.cache/
+dashboard/.env
+dbt/retail_pipeline/logs/dbt.log
+dbt/retail_pipeline/target
+.vscode
+secrets.txt
+

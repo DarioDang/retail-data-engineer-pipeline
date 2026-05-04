@@ -7,8 +7,11 @@ terraform/.terraform.lock.hcl
 Pipfile.lock
 .cache/
 dashboard/.env
-dbt/retail_pipeline/logs/dbt.log
+dbt/logs/dbt.log
+dbt/retail_pipeline/logs
 dbt/retail_pipeline/target
 .vscode
 secrets.txt
 
+.DS_Store
+**/.DS_Store

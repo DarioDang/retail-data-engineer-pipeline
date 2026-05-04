@@ -234,7 +234,8 @@ with text_col:
     """, unsafe_allow_html=True)
 
 with img_col:
-    st.image("image/homepage/about_us.png", use_container_width=True)
+    img_path = os.path.join(os.path.dirname(__file__), "image", "homepage", "about_us.png")
+    st.image(img_path, use_container_width=True)
 
 st.divider()
 

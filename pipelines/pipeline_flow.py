@@ -68,7 +68,7 @@ def dbt_run_task():
     logger = get_run_logger()
     logger.info("Running dbt models...")
     result = subprocess.run(
-        ["dbt", "run", "--profiles-dir", "."],
+        ["dbt", "run", "--profiles-dir", ".", "--target", "cloud"],
         capture_output=True, text=True,
         cwd=str(DBT_DIR),
         env=os.environ.copy()
@@ -84,7 +84,7 @@ def dbt_test_task():
     logger = get_run_logger()
     logger.info("Running dbt tests...")
     result = subprocess.run(
-        ["dbt", "test", "--profiles-dir", "."],
+        ["dbt", "test", "--profiles-dir", ".", "--target", "cloud"],
         capture_output=True, text=True,
         cwd=str(DBT_DIR),
         env=os.environ.copy()

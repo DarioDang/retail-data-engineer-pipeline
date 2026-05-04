@@ -1,8 +1,11 @@
 import os
 import pandas as pd
+import streamlit as st
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from pathlib import Path
+from datetime import datetime
+import pytz
 
 # Load local .env (only works locally, ignored on Streamlit Cloud)
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -10,7 +13,6 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 def get_db_config():
     """Get DB config from Streamlit secrets (cloud) or .env (local)."""
     try:
-        import streamlit as st
         return {
             "user": st.secrets["database"]["username"],
             "password": st.secrets["database"]["password"],
@@ -35,8 +37,27 @@ def get_engine():
         f"@{cfg['host']}:{cfg['port']}/{cfg['db']}"
     )
 
-def run_query(sql: str):
-    """Execute SQL and return DataFrame."""
+def get_cache_ttl() -> int:
+    """
+    Return cache TTL in seconds.
+    - Between 8:00pm - 8:30pm NZT → no cache (0 seconds)
+      so users see fresh data right after pipeline runs
+    - All other times → 55 minute cache
+    """
+    nz_tz = pytz.timezone("Pacific/Auckland")
+    now = datetime.now(nz_tz)
+    hour = now.hour
+    minute = now.minute
+
+    # Pipeline runs at 8pm NZT — disable cache 8:00-8:30pm
+    if hour == 20 and minute <= 30:
+        return 0  # no cache during pipeline window
+
+    return 55 * 60  # 55 minutes in seconds
+
+@st.cache_data(ttl=get_cache_ttl())
+def run_query(sql: str) -> pd.DataFrame:
+    """Execute SQL and return DataFrame with smart caching."""
     engine = get_engine()
     with engine.connect() as conn:
         return pd.read_sql(text(sql), conn)

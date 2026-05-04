@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw_shopping
-    database: retail_pipeline
+    database: retail_warehouse
     schema: raw_shopping
     tables:
       - name: electronic_products

@@ -234,7 +234,7 @@ with text_col:
     """, unsafe_allow_html=True)
 
 with img_col:
-    st.image("image/homepage/about_us.png", width='stretch')
+    st.image("image/homepage/about_us.png", use_container_width=True)
 
 st.divider()
 

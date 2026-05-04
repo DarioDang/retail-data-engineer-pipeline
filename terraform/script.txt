@@ -1,0 +1,11 @@
+```bash
+terraform plan
+```
+
+```bash
+terraform apply
+```
+
+```bash
+terraform destroy
+```

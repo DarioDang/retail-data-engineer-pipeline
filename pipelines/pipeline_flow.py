@@ -116,4 +116,29 @@ def retail_pipeline():
     logger.info("🎉 Pipeline completed successfully!")
 
 if __name__ == "__main__":
-    retail_pipeline()
+    retail_pipeline.from_source(
+        source="https://github.com/DarioDang/retail-data-engineer-pipeline.git",
+        entrypoint="pipelines/pipeline_flow.py:retail_pipeline",
+    ).deploy(
+        name="retail-daily-pipeline",
+        work_pool_name="retail-managed-pool",
+        cron="0 20 * * *",  # 8pm NZT = 8am UTC daily
+        job_variables={
+            "pip_packages": [
+                "prefect-aws",
+                "dlt[parquet]",
+                "dlt[filesystem]",
+                "dlt[postgres]",
+                "serpapi",
+                "boto3",
+                "pandas",
+                "pyarrow",
+                "sqlalchemy",
+                "psycopg2-binary",
+                "python-dotenv",
+                "pytz",
+                "dbt-core",
+                "dbt-postgres"
+            ]
+        }
+    )

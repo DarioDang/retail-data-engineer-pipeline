@@ -544,9 +544,6 @@ if selected_category != "All":
     ]
 
 # ── STEP 5: Average Price Over Time ───────────────────────────────────────────
-# ── STEP 5: Average Price Over Time ───────────────────────────────────────────
-import streamlit.components.v1 as components
-
 st.subheader("AVERAGE PRICE OVER TIME")
 df_time = run_query(AVG_PRICE_OVER_TIME)
 df_time["snapshot_date"] = pd.to_datetime(df_time["snapshot_date"]).dt.date
@@ -711,8 +708,8 @@ if len(df_time["snapshot_date"].unique()) > 1:
 
     <div class="slider-wrapper">
         <div class="slider-header">
-            <span class="slider-label">📅 Date Range</span>
-            <span class="slider-pill"><b id="pill-days">{default_end_idx - default_start_idx + 1}</b>d selected</span>
+            <span class="slider-label">Date Range</span>
+            <span class="slider-label-right" style='color: rgba(255,255,255,0.35); font-size: 10px; font-family: sans-serif;'>DRAG TO FILTER</span>
         </div>
 
         <div class="range-track-wrapper">
@@ -788,8 +785,19 @@ if len(df_time["snapshot_date"].unique()) > 1:
 
     components.html(slider_html, height=120)
 
+    # Hide the Streamlit slider visually but keep it functional
+    st.markdown("""
+        <style>
+            div[data-testid="stSlider"] {
+                visibility: hidden;
+                height: 0;
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     # ── Hidden Streamlit slider for actual filtering ────────────────────────────
-    # This drives the actual Python filtering logic
     slider_col, _ = st.columns([1, 4])
     with slider_col:
         if total_days > 1:

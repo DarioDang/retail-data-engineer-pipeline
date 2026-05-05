@@ -389,86 +389,149 @@ with col1:
     if df_rating.empty:
         st.info("No rating data available yet.")
     else:
-        # Top 10 sellers by avg rating
         df_top_rated = df_rating.nlargest(10, "avg_rating").sort_values(
-            "avg_rating", ascending=True
-        )
+            "avg_rating", ascending=False
+        ).reset_index(drop=True)
 
-        fig_rating = go.Figure()
+        for idx, row in df_top_rated.iterrows():
+            rank = idx + 1
 
-        for _, row in df_top_rated.iterrows():
-            # Color gradient based on rating
+            # Color by rating
             if row["avg_rating"] >= 4.5:
                 color = "#38ef7d"
+                badge = "EXCELLENT"
             elif row["avg_rating"] >= 4.0:
                 color = "#f7971e"
+                badge = "GOOD"
             else:
                 color = "#FF6B6B"
+                badge = "FAIR"
 
-            fig_rating.add_trace(go.Bar(
-                x=[row["avg_rating"]],
-                y=[row["seller"]],
-                orientation="h",
-                marker=dict(
-                    color=color,
-                    opacity=0.85,
-                    line=dict(width=0)
-                ),
-                text=f"{row['avg_rating']:.1f}  ({row['total_reviews']:,} reviews)",
-                textposition="outside",
-                textfont=dict(color="white", size=10),
-                hovertemplate=(
-                    f"<b>{row['seller']}</b><br>"
-                    f"Rating: {row['avg_rating']:.1f}<br>"
-                    f"Reviews: {row['total_reviews']:,}<br>"
-                    f"Listings: {row['total_listings']}<extra></extra>"
-                ),
-                showlegend=False
-            ))
+            # Star display
+            full_stars  = int(row["avg_rating"])
+            stars_html  = "★" * full_stars + "☆" * (5 - full_stars)
 
-        fig_rating.update_layout(
-            height=380,
-            margin=dict(t=10, b=10, l=10, r=160),
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            bargap=0.25,
-            xaxis=dict(
-                range=[0, 6.5],
-                showticklabels=False,
-                showgrid=False,
-                zeroline=False
-            ),
-            yaxis=dict(
-                showgrid=False,
-                tickfont=dict(color="white", size=10)
-            )
-        )
-        st.plotly_chart(fig_rating, use_container_width=True,
-                       config={"displayModeBar": False})
+            # Rank medal for top 3
+            if rank == 1:   medal = "🥇"
+            elif rank == 2: medal = "🥈"
+            elif rank == 3: medal = "🥉"
+            else:           medal = f"<span style='color:rgba(255,255,255,0.3); font-size:11px; font-weight:700;'>#{rank}</span>"
 
-        # Rating legend
+            # Rating bar width
+            bar_width = (row["avg_rating"] / 5.0) * 100
+
+            st.markdown(f"""
+                <div style='
+                    background: linear-gradient(135deg, #1a1d2e, #1E2130);
+                    border-radius: 10px;
+                    padding: 10px 14px;
+                    margin-bottom: 8px;
+                    border-left: 3px solid {color};
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                '>
+                    <!-- Rank -->
+                    <div style='
+                        min-width: 28px;
+                        text-align: center;
+                        font-size: 16px;
+                    '>{medal}</div>
+
+                    <!-- Main content -->
+                    <div style='flex: 1; min-width: 0;'>
+                        <div style='
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 4px;
+                        '>
+                            <span style='
+                                color: white;
+                                font-size: 12px;
+                                font-weight: 600;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 160px;
+                                display: block;
+                            '>{row['seller']}</span>
+                            <span style='
+                                background: rgba({
+                                    "56,239,125" if color == "#38ef7d"
+                                    else "247,151,30" if color == "#f7971e"
+                                    else "255,107,107"
+                                },0.15);
+                                border: 1px solid {color};
+                                border-radius: 6px;
+                                padding: 1px 6px;
+                                color: {color};
+                                font-size: 9px;
+                                font-weight: 700;
+                                letter-spacing: 1px;
+                                margin-left: 8px;
+                                white-space: nowrap;
+                            '>{badge}</span>
+                        </div>
+
+                        <!-- Stars + rating -->
+                        <div style='
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            margin-bottom: 5px;
+                        '>
+                            <span style='color: {color}; font-size: 11px;
+                                letter-spacing: 1px;'>{stars_html}</span>
+                            <span style='color: {color}; font-size: 12px;
+                                font-weight: 800;'>{row['avg_rating']:.1f}</span>
+                            <span style='color: rgba(255,255,255,0.3);
+                                font-size: 10px;'>({row['total_reviews']:,} reviews)</span>
+                        </div>
+
+                        <!-- Rating bar -->
+                        <div style='
+                            background: rgba(255,255,255,0.06);
+                            border-radius: 20px;
+                            height: 3px;
+                            overflow: hidden;
+                        '>
+                            <div style='
+                                width: {bar_width:.1f}%;
+                                height: 100%;
+                                border-radius: 20px;
+                                background: linear-gradient(90deg, {color}, {color}88);
+                            '></div>
+                        </div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Legend
+        st.markdown("<div style='margin-top: 8px;'>", unsafe_allow_html=True)
         leg_col1, leg_col2, leg_col3 = st.columns(3)
         with leg_col1:
             st.markdown(
                 "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:10px; height:10px; border-radius:50%; background:#38ef7d;'></div>"
-                "<span style='color:white; font-size:11px;'>≥ 4.5 Excellent</span></div>",
+                "<div style='width:8px; height:8px; border-radius:50%; background:#38ef7d;'></div>"
+                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>≥ 4.5 Excellent</span></div>",
                 unsafe_allow_html=True
             )
         with leg_col2:
             st.markdown(
                 "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:10px; height:10px; border-radius:50%; background:#f7971e;'></div>"
-                "<span style='color:white; font-size:11px;'>≥ 4.0 Good</span></div>",
+                "<div style='width:8px; height:8px; border-radius:50%; background:#f7971e;'></div>"
+                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>≥ 4.0 Good</span></div>",
                 unsafe_allow_html=True
             )
         with leg_col3:
             st.markdown(
                 "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:10px; height:10px; border-radius:50%; background:#FF6B6B;'></div>"
-                "<span style='color:white; font-size:11px;'>< 4.0 Fair</span></div>",
+                "<div style='width:8px; height:8px; border-radius:50%; background:#FF6B6B;'></div>"
+                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>< 4.0 Fair</span></div>",
                 unsafe_allow_html=True
             )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ── RIGHT: Cheapest Seller per Product ────────────────────────────────────────
 with col2:

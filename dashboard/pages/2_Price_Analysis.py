@@ -626,6 +626,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 tickvals=df_product["snapshot_date"].tolist(),
                 tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
                 gridcolor="rgba(255,255,255,0.03)",
+                range=[-0.5, len(df_product) - 0.5],  # ← adds padding left & right
             ),
             yaxis=dict(
                 range=y_range,

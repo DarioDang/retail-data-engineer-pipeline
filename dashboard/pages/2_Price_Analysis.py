@@ -553,42 +553,146 @@ if selected_category != "All":
 
 if len(df_time["snapshot_date"].unique()) > 1:
     products = sorted(df_time["product_name"].unique().tolist())
+
+    # ── Range filter buttons ───────────────────────────────────────────────────
+    all_dates = sorted(df_time["snapshot_date"].unique())
+    total_days = len(all_dates)
+
+    st.markdown("""
+        <div style='display: flex; align-items: center; gap: 8px;
+            margin-bottom: 12px;'>
+            <span style='color: rgba(255,255,255,0.5); font-size: 12px;
+                letter-spacing: 1px;'>SHOW:</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    range_options = ["7D", "14D", "30D", "All"]
+    range_col1, range_col2, range_col3, range_col4, _ = st.columns([1,1,1,1,6])
+
+    with range_col1:
+        btn_7d  = st.button("7D",  key="range_7d",  use_container_width=True)
+    with range_col2:
+        btn_14d = st.button("14D", key="range_14d", use_container_width=True)
+    with range_col3:
+        btn_30d = st.button("30D", key="range_30d", use_container_width=True)
+    with range_col4:
+        btn_all = st.button("All", key="range_all", use_container_width=True)
+
+    # ── Determine selected range ───────────────────────────────────────────────
+    if "time_range" not in st.session_state:
+        st.session_state.time_range = "7D"  # default to 7 days
+
+    if btn_7d:  st.session_state.time_range = "7D"
+    if btn_14d: st.session_state.time_range = "14D"
+    if btn_30d: st.session_state.time_range = "30D"
+    if btn_all: st.session_state.time_range = "All"
+
+    # ── Filter dates based on selected range ──────────────────────────────────
+    selected_range = st.session_state.time_range
+    if selected_range == "7D":
+        cutoff_date = all_dates[-min(7,  total_days)]
+    elif selected_range == "14D":
+        cutoff_date = all_dates[-min(14, total_days)]
+    elif selected_range == "30D":
+        cutoff_date = all_dates[-min(30, total_days)]
+    else:
+        cutoff_date = all_dates[0]
+
+    df_time_filtered = df_time[df_time["snapshot_date"] >= cutoff_date]
+
+    # ── Show active range indicator ────────────────────────────────────────────
+    st.markdown(f"""
+        <div style='margin-bottom: 16px;'>
+            <span style='
+                background: rgba(255,107,107,0.15);
+                border: 1px solid rgba(255,107,107,0.4);
+                border-radius: 12px;
+                padding: 3px 12px;
+                color: #FF6B6B;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 1px;
+            '>● {selected_range} SELECTED — {len(df_time_filtered["snapshot_date"].unique())} days of data</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # ── Render charts ──────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
 
     for i, product in enumerate(products):
-        df_product = df_time[df_time["product_name"] == product].copy()
+        df_product = df_time_filtered[df_time_filtered["product_name"] == product].copy()
+
+        if df_product.empty:
+            continue
+
         df_product["snapshot_date"] = df_product["snapshot_date"].astype(str)
-        category = df_product["category"].iloc[0]
+        category   = df_product["category"].iloc[0]
         line_color = CATEGORY_COLORS.get(category, "#FF6B6B")
-        icon_path = PRODUCT_ICONS.get(product, "")
+        icon_path  = PRODUCT_ICONS.get(product, "")
+
+        # ── Price change indicator ─────────────────────────────────────────────
+        if len(df_product) >= 2:
+            first_price = df_product["avg_price"].iloc[0]
+            last_price  = df_product["avg_price"].iloc[-1]
+            change_pct  = ((last_price - first_price) / first_price) * 100
+            change_color = "#2ECC71" if change_pct <= 0 else "#FF6B6B"
+            change_arrow = "▼" if change_pct <= 0 else "▲"
+            change_text  = f"{change_arrow} {abs(change_pct):.1f}%"
+        else:
+            change_text  = ""
+            change_color = "gray"
 
         fig = px.line(
             df_product, x="snapshot_date", y="avg_price",
             markers=True, title="",
             labels={"snapshot_date": "Date", "avg_price": "Avg Price (NZD)"}
         )
+
         fig.update_layout(
-            xaxis=dict(type="category", tickangle=-45, tickmode="array",
-                      tickvals=df_product["snapshot_date"].tolist()),
-            showlegend=False, height=280,
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            margin=dict(t=10, b=10, l=10, r=10)
+            xaxis=dict(
+                type="category",
+                tickangle=-45,
+                tickmode="array",
+                tickvals=df_product["snapshot_date"].tolist(),
+            ),
+            showlegend=False,
+            height=300,
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(t=10, b=10, l=10, r=10),
+            yaxis=dict(
+                gridcolor="rgba(255,255,255,0.05)",
+                tickprefix="$",
+                ticksuffix=" NZD",
+            )
         )
+
         fig.update_traces(
-            line_color=line_color, line_width=2.5,
-            marker=dict(size=8, color=line_color,
-                       line=dict(width=2, color="white"))
+            line_color=line_color,
+            line_width=2.5,
+            marker=dict(
+                size=8,
+                color=line_color,
+                line=dict(width=2, color="white")
+            ),
+            fill="tozeroy",
+            fillcolor=f"rgba{tuple(list(int(line_color.lstrip('#')[i:i+2], 16) for i in (0,2,4)) + [0.08])}",
         )
 
         custom_title = f"""
             <div style='text-align: center; margin-top: 16px;
-            margin-bottom: 4px; padding: 8px 12px;'>
+                margin-bottom: 4px; padding: 8px 12px;
+                display: flex; align-items: center;
+                justify-content: center; gap: 8px;'>
                 <img src='{icon_path}' width='26'
-                    style='vertical-align: middle; margin-right: 8px;'/>
+                    style='vertical-align: middle;'/>
                 <span style='color: white; font-size: 15px; font-weight: 600;
                     vertical-align: middle;'>{product}</span>
+                <span style='color: {change_color}; font-size: 12px;
+                    font-weight: 700;'>{change_text}</span>
             </div>
         """
+
         if i % 2 == 0:
             with col1:
                 st.markdown(custom_title, unsafe_allow_html=True)
@@ -597,6 +701,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
             with col2:
                 st.markdown(custom_title, unsafe_allow_html=True)
                 st.plotly_chart(fig, use_container_width=True)
+
 else:
     st.info("⏳ Time series will populate after multiple daily pipeline runs.")
     fig = px.bar(

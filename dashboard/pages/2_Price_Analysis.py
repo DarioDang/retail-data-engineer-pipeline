@@ -556,27 +556,37 @@ if len(df_time["snapshot_date"].unique()) > 1:
     all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
-    # ── Range selector ─────────────────────────────────────────────────────────
-    selected_range = st.radio(
-        "SHOW LAST:",
-        options=["7D", "14D", "30D", "All"],
-        index=0,
-        horizontal=True,
-        key="time_range_radio",
-    )
+    # ── Date range slider ──────────────────────────────────────────────────────
+    # Default: last 7 days or all if less than 7 days available
+    default_start = all_dates[-min(7, total_days)]
+    default_end   = all_dates[-1]
 
-    # ── Filter by range ────────────────────────────────────────────────────────
-    if selected_range == "7D":
-        cutoff_date = all_dates[-min(7,  total_days)]
-    elif selected_range == "14D":
-        cutoff_date = all_dates[-min(14, total_days)]
-    elif selected_range == "30D":
-        cutoff_date = all_dates[-min(30, total_days)]
+    if total_days > 1:
+        selected_start, selected_end = st.select_slider(
+            "Select date range:",
+            options=all_dates,
+            value=(default_start, default_end),
+            format_func=lambda d: d.strftime("%b %d"),
+        )
     else:
-        cutoff_date = all_dates[0]
+        selected_start = selected_end = all_dates[0]
 
-    df_time_filtered = df_time[df_time["snapshot_date"] >= cutoff_date]
+    # ── Filter by selected range ───────────────────────────────────────────────
+    df_time_filtered = df_time[
+        (df_time["snapshot_date"] >= selected_start) &
+        (df_time["snapshot_date"] <= selected_end)
+    ]
     days_shown = len(df_time_filtered["snapshot_date"].unique())
+
+    # ── Range info ─────────────────────────────────────────────────────────────
+    st.markdown(f"""
+        <p style='color: rgba(255,255,255,0.35); font-size: 11px;
+            margin: -8px 0 16px 0; letter-spacing: 0.5px;'>
+            Showing {days_shown} day{"s" if days_shown != 1 else ""} 
+            · {selected_start.strftime("%d %b %Y")} → {selected_end.strftime("%d %b %Y")}
+            {"· <span style='color:#FF6B6B;'>drag handles to adjust range</span>" if total_days > 7 else ""}
+        </p>
+    """, unsafe_allow_html=True)
 
     # ── Charts ─────────────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
@@ -626,7 +636,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 tickvals=df_product["snapshot_date"].tolist(),
                 tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
                 gridcolor="rgba(255,255,255,0.03)",
-                range=[-0.5, len(df_product) - 0.5],  # ← adds padding left & right
+                range=[-0.5, len(df_product) - 0.5],
             ),
             yaxis=dict(
                 range=y_range,

@@ -411,36 +411,39 @@ with col2:
 # ── Row 3: Price Range Chart (Weekly)
 df_trend = run_query(AVG_PRICE_OVER_TIME)
 df_trend["snapshot_date"] = pd.to_datetime(df_trend["snapshot_date"])
-
-# Keep actual date for sorting, format for display
-df_trend["day"] = df_trend["snapshot_date"].dt.date
-df_trend["day_label"] = df_trend["snapshot_date"].dt.strftime("%d %b")
-
-df_category_trend = df_trend.groupby(
-    ["day", "day_label", "category"]
-)["avg_price"].mean().reset_index()
-df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
-
-# Sort chronologically by actual date
-df_category_trend = df_category_trend.sort_values("day")
-
-# Use label for display but keep order from actual date
-df_category_trend["week"] = df_category_trend["day_label"]
-ordered_labels = df_category_trend["day_label"].unique().tolist()
-
-# ── Note: show daily if less than 14 days of data ─────────────────────────────
 total_days = df_trend["snapshot_date"].nunique()
+
 if total_days < 14:
-    # Not enough data for weekly — show daily instead with a note
-    df_trend["snapshot_date"] = df_trend["snapshot_date"].dt.strftime("%d %b")
+    # ── Daily view ─────────────────────────────────────────────────────────────
+    df_trend["day"]       = df_trend["snapshot_date"].dt.date
+    df_trend["day_label"] = df_trend["snapshot_date"].dt.strftime("%d %b")
+
     df_category_trend = df_trend.groupby(
-        ["snapshot_date", "category"]
+        ["day", "day_label", "category"]
     )["avg_price"].mean().reset_index()
     df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
-    df_category_trend = df_category_trend.rename(columns={"snapshot_date": "week"})
+    df_category_trend = df_category_trend.sort_values("day")
+    df_category_trend["week"] = df_category_trend["day_label"]
+    ordered_labels = df_category_trend["day_label"].unique().tolist()
+
     view_label = "Daily"
     note = f"(Weekly view activates after 14 days of data — currently {total_days}d)"
+
 else:
+    # ── Weekly view ────────────────────────────────────────────────────────────
+    df_trend["week_start"] = df_trend["snapshot_date"].dt.to_period("W").apply(
+        lambda r: r.start_time
+    )
+    df_trend["week_label"] = df_trend["week_start"].dt.strftime("%d %b")
+
+    df_category_trend = df_trend.groupby(
+        ["week_start", "week_label", "category"]
+    )["avg_price"].mean().reset_index()
+    df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
+    df_category_trend = df_category_trend.sort_values("week_start")
+    df_category_trend["week"] = df_category_trend["week_label"]
+    ordered_labels = df_category_trend["week_label"].unique().tolist()
+
     view_label = "Weekly"
     note = ""
 
@@ -477,9 +480,9 @@ fig.update_layout(
         type="category",
         tickangle=-45,
         tickmode="array",
-        tickvals=ordered_labels,  
+        tickvals=ordered_labels,
         categoryorder="array",
-        categoryarray=ordered_labels,  # ← force correct order
+        categoryarray=ordered_labels,
         tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
         gridcolor="rgba(255,255,255,0.03)",
     ),
@@ -491,9 +494,9 @@ fig.update_layout(
     legend=dict(
         orientation="h",
         yanchor="top",
-        y=1.15,        # ← above chart
+        y=1.15,
         xanchor="left",
-        x=0,           # ← aligned to left
+        x=0,
         title_text="",
         font=dict(color="rgba(255,255,255,0.6)", size=11)
     ),
@@ -503,7 +506,6 @@ fig.update_layout(
 
 fig.update_traces(line_width=2.5)
 
-# ── Note below chart ───────────────────────────────────────────────────────────
 st.plotly_chart(fig, use_container_width=True)
 if note:
     st.markdown(f"""

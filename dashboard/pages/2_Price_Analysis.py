@@ -552,52 +552,18 @@ if selected_category != "All":
     df_time = df_time[df_time["category"] == selected_category]
 
 if len(df_time["snapshot_date"].unique()) > 1:
-    products = sorted(df_time["product_name"].unique().tolist())
+    products   = sorted(df_time["product_name"].unique().tolist())
     all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
-    # ── Button styling ─────────────────────────────────────────────────────────
-    st.markdown("""
-        <style>
-            div[data-testid="column"] button {
-                background: rgba(255,255,255,0.05) !important;
-                border: 1px solid rgba(255,255,255,0.15) !important;
-                color: rgba(255,255,255,0.7) !important;
-                border-radius: 8px !important;
-                font-size: 11px !important;
-                font-weight: 700 !important;
-                letter-spacing: 1px !important;
-                transition: all 0.2s ease !important;
-            }
-            div[data-testid="column"] button:hover {
-                background: rgba(255,107,107,0.2) !important;
-                border-color: #FF6B6B !important;
-                color: #FF6B6B !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
     # ── Range selector ─────────────────────────────────────────────────────────
-    st.markdown("""
-        <p style='color: rgba(255,255,255,0.5); font-size: 12px;
-            letter-spacing: 1px; margin-bottom: 8px;'>SHOW LAST:</p>
-    """, unsafe_allow_html=True)
-
-    range_col1, range_col2, range_col3, range_col4, _ = st.columns([1,1,1,1,6])
-    with range_col1: btn_7d  = st.button("7D",  key="range_7d",  use_container_width=True)
-    with range_col2: btn_14d = st.button("14D", key="range_14d", use_container_width=True)
-    with range_col3: btn_30d = st.button("30D", key="range_30d", use_container_width=True)
-    with range_col4: btn_all = st.button("All", key="range_all", use_container_width=True)
-
-    # ── Session state for range ────────────────────────────────────────────────
-    if "time_range" not in st.session_state:
-        st.session_state.time_range = "7D"
-    if btn_7d:  st.session_state.time_range = "7D"
-    if btn_14d: st.session_state.time_range = "14D"
-    if btn_30d: st.session_state.time_range = "30D"
-    if btn_all: st.session_state.time_range = "All"
-
-    selected_range = st.session_state.time_range
+    selected_range = st.radio(
+        "SHOW LAST:",
+        options=["7D", "14D", "30D", "All"],
+        index=0,
+        horizontal=True,
+        key="time_range_radio",
+    )
 
     # ── Filter by range ────────────────────────────────────────────────────────
     if selected_range == "7D":
@@ -613,22 +579,18 @@ if len(df_time["snapshot_date"].unique()) > 1:
     days_shown = len(df_time_filtered["snapshot_date"].unique())
 
     # ── Active range badge ─────────────────────────────────────────────────────
+    extra = "(more data available — select a wider range)" if days_shown < total_days else ""
     st.markdown(f"""
         <div style='margin: 8px 0 16px 0;'>
-            <span style='
-                background: rgba(255,107,107,0.15);
+            <span style='background: rgba(255,107,107,0.15);
                 border: 1px solid rgba(255,107,107,0.4);
-                border-radius: 12px;
-                padding: 3px 12px;
-                color: #FF6B6B;
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 1px;
-            '>● {selected_range} — {days_shown} day{"s" if days_shown != 1 else ""} of data</span>
-            <span style='color: rgba(255,255,255,0.3); font-size: 11px;
-                margin-left: 8px;'>
-                {f"(more data available — select a wider range)" if days_shown < total_days else ""}
+                border-radius: 12px; padding: 3px 12px;
+                color: #FF6B6B; font-size: 11px; font-weight: 700;
+                letter-spacing: 1px;'>
+                ● {selected_range} — {days_shown} day{"s" if days_shown != 1 else ""} of data
             </span>
+            <span style='color: rgba(255,255,255,0.3); font-size: 11px;
+                margin-left: 8px;'>{extra}</span>
         </div>
     """, unsafe_allow_html=True)
 
@@ -660,11 +622,11 @@ if len(df_time["snapshot_date"].unique()) > 1:
             change_text  = "–"
             change_color = "gray"
 
-        # ── Y-axis range (zoom to data, not from 0) ────────────────────────────
-        y_min = df_product["avg_price"].min()
-        y_max = df_product["avg_price"].max()
+        # ── Y-axis zoom to data ────────────────────────────────────────────────
+        y_min     = df_product["avg_price"].min()
+        y_max     = df_product["avg_price"].max()
         y_padding = (y_max - y_min) * 0.15 if y_max != y_min else y_max * 0.05
-        y_range = [y_min - y_padding, y_max + y_padding]
+        y_range   = [y_min - y_padding, y_max + y_padding]
 
         fig = px.line(
             df_product, x="snapshot_date", y="avg_price",
@@ -684,7 +646,6 @@ if len(df_time["snapshot_date"].unique()) > 1:
             yaxis=dict(
                 range=y_range,
                 tickprefix="$",
-                ticksuffix="",
                 tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
                 gridcolor="rgba(255,255,255,0.05)",
             ),
@@ -695,7 +656,6 @@ if len(df_time["snapshot_date"].unique()) > 1:
             margin=dict(t=10, b=10, l=10, r=10),
         )
 
-        # Fill color from hex
         r, g, b = int(line_color[1:3], 16), int(line_color[3:5], 16), int(line_color[5:7], 16)
 
         fig.update_traces(
@@ -712,9 +672,9 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 justify-content: center; gap: 8px;'>
                 <img src='{icon_path}' width='24' style='vertical-align: middle;'/>
                 <span style='color: white; font-size: 14px; font-weight: 600;'>{product}</span>
-                <span style='color: {change_color}; font-size: 12px;
-                    font-weight: 700; background: rgba(0,0,0,0.3);
-                    padding: 2px 8px; border-radius: 8px;'>{change_text}</span>
+                <span style='color: {change_color}; font-size: 12px; font-weight: 700;
+                    background: rgba(0,0,0,0.3); padding: 2px 8px;
+                    border-radius: 8px;'>{change_text}</span>
             </div>
         """
 
@@ -752,7 +712,6 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 st.divider()
-
 
 # ── STEP 7: Price Statistics Insight Cards ─────────────────────────────────────
 st.subheader("PRICE STATISTICS PER PRODUCT")

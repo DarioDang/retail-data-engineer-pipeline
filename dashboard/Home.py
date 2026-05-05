@@ -200,42 +200,35 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-text_col, img_col = st.columns([3, 1])
-
-with text_col:
-    st.markdown("""
-        <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
+st.markdown("""
+    <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             This dashboard tracks and analyzes real-time product prices from Google Shopping 
             across 8 popular consumer electronics in New Zealand, covering laptops, smartphones, 
             and action cameras from leading brands like Apple, Samsung, Dell, HP, GoPro, and DJI.
-        </p>
-        <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
+    </p>
+    <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             Built as a end-to-end data engineering portfolio project, the pipeline is designed 
             to demonstrate modern data engineering practices including data ingestion, 
             transformation, storage, orchestration, and visualization, all running on 
             a fully automated daily schedule.
-        </p>
-        <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
+    </p>
+    <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             Data is collected daily via SerpAPI and loaded into AWS S3 as a data lake using 
             dlt (data load tool). From there, data is loaded into a PostgreSQL warehouse, 
             transformed using dbt and orchestrated end-to-end with Kestra.
-        </p>
-        <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
+    </p>
+    <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             The goal of this project is to provide actionable price intelligence which  helping 
             consumers identify the cheapest sellers, track price trends over time, monitor 
             discount patterns, and understand seller competition across the New Zealand 
             electronics market.
-        </p>
+    </p>
         <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             This dashboard was created as part of the Data Engineering Zoomcamp 2026 cohort, 
             demonstrating skills across the full data engineering stack from raw API 
             ingestion through to an interactive analytics dashboard built with Streamlit.
         </p>
     """, unsafe_allow_html=True)
-
-with img_col:
-    img_path = os.path.join(os.path.dirname(__file__), "image", "homepage", "about_us.png")
-    st.image(img_path, use_container_width=True)
 
 st.divider()
 

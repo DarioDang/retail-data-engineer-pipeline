@@ -27,7 +27,7 @@ icon = Image.open(icon_path)
 st.set_page_config(layout="wide")
 
 # Hide the background streamlit 
-hide_streamlit_ui
+hide_streamlit_ui()
 
 # Same global CSS — copy paste this block to every page
 st.markdown(f"""
@@ -67,8 +67,6 @@ st.markdown(f"""
 
 # Add sidebar
 render_sidebar()
-
-
 
 st.markdown(
     """

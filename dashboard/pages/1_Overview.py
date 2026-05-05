@@ -470,9 +470,12 @@ fig.update_layout(
         type="category",
         tickangle=-45,
         tickmode="array",
-        tickvals=df_category_trend["week"].unique().tolist(),
+        # ← sort dates chronologically
+        tickvals=sorted(df_category_trend["week"].unique().tolist()),
         tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
         gridcolor="rgba(255,255,255,0.03)",
+        categoryorder="array",
+        categoryarray=sorted(df_category_trend["week"].unique().tolist()),
     ),
     yaxis=dict(
         tickprefix="$",
@@ -481,10 +484,10 @@ fig.update_layout(
     ),
     legend=dict(
         orientation="h",
-        yanchor="bottom",
-        y=1.02,
+        yanchor="top",
+        y=1.15,        # ← above chart
         xanchor="left",
-        x=0.5,
+        x=0,           # ← aligned to left
         title_text="",
         font=dict(color="rgba(255,255,255,0.6)", size=11)
     ),

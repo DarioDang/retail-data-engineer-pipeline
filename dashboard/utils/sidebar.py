@@ -22,7 +22,7 @@ BG_PATH = os.path.join(os.path.dirname(__file__), "..", "image", "background", "
 BG_BASE64 = get_base64_image(BG_PATH)
 
 # Load portfolio icon
-portfolio_icon_path = os.path.join(os.path.dirname(__file__), "..", "static", "portfolio-sidebar.png")
+portfolio_icon_path = os.path.join(os.path.dirname(__file__), "..", "static", "portfolio-sidebar-icon.png")
 with open(portfolio_icon_path, "rb") as f:
     portfolio_icon_b64 = base64.b64encode(f.read()).decode()
 

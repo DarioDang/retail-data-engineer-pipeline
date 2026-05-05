@@ -1,8 +1,9 @@
 import streamlit as st 
 import plotly.express as px 
 import plotly.graph_objects as go
+import os
 import sys
-sys.path.append("..") 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from utils.db import run_query
 from utils.queries import (
@@ -62,7 +63,7 @@ st.markdown(f"""
 render_sidebar()
 
 # Hide streamlit background
-hide_streamlit_ui
+hide_streamlit_ui()
 
 st.markdown("""
     <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">

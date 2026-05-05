@@ -5,8 +5,9 @@ import pandas as pd
 import plotly.graph_objects as go 
 from utils.styles import hide_streamlit_ui
 import sys 
+import os
 import random
-sys.path.append("..")
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from utils.db import run_query
 from utils.queries import (
@@ -57,7 +58,7 @@ st.markdown(f"""
 render_sidebar()
 
 # Hide streamlit background
-hide_streamlit_ui
+hide_streamlit_ui()
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""

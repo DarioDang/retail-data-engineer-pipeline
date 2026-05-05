@@ -522,7 +522,7 @@ with arr3:
 with col4:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
-            <img src='app/static/amazone-rds-icon.png' width='50'/>
+            <img src='app/static/amazon-rds-icon.png' width='50'/>
             <p style='color: gray; margin-top: 10px;'><b>AWS RDS</b><br>Data Warehouse</p>
         </div>
     """, unsafe_allow_html=True)

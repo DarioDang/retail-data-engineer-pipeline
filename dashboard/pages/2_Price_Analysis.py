@@ -13,7 +13,7 @@ from utils.db import run_query
 from utils.queries import (
     AVG_PRICE_OVER_TIME, PRICE_STATS_PER_PRODUCT,
     PRICE_RANGE_BY_PRODUCT, PRICE_CHANGE_VS_YESTERDAY,
-    PRICE_CHANGE_VS_LAST_WEEK
+    PRICE_CHANGE_VS_LAST_WEEK, PRICE_STATS_LAST_7_DAYS
 )
 from utils.sidebar import render_sidebar, BG_BASE64
 
@@ -792,7 +792,6 @@ st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 # ── STEP 7: Price Statistics Insight Cards ─────────────────────────────────────
-# ── STEP 7: Price Statistics Insight Cards (Time-Aware) ────────────────────────
 st.subheader("PRICE STATISTICS PER PRODUCT")
 
 # ── Fetch time-aware data ──────────────────────────────────────────────────────
@@ -808,11 +807,32 @@ if selected_category != "All":
 has_yesterday = len(df_yesterday) > 0
 has_week      = len(df_week) > 0
 
-# ── PAGE 1: Today's snapshot insights ─────────────────────────────────────────
-most_expensive = df_stats_filtered.loc[df_stats_filtered["Max Price (NZD)"].idxmax()]
-cheapest_avg   = df_stats_filtered.loc[df_stats_filtered["Avg Price (NZD)"].idxmin()]
-most_sellers   = df_stats_filtered.loc[df_stats_filtered["Seller Count"].idxmax()]
-best_deal      = df_stats_filtered.loc[df_stats_filtered["Cheapest Price (NZD)"].idxmin()]
+# ── PAGE 1: Today's snapshot insights 
+# ── Fetch last 7 days stats 
+df_7days = run_query(PRICE_STATS_LAST_7_DAYS)
+
+if selected_category != "All":
+    df_7days = df_7days[df_7days["category"] == selected_category]
+
+# ── Use 7-day data if available, fallback to all-time 
+if len(df_7days) > 0:
+    most_expensive_row  = df_7days.loc[df_7days["max_price_7d"].idxmax()]
+    cheapest_avg_row    = df_7days.loc[df_7days["avg_price_7d"].idxmin()]
+
+    most_expensive_val  = f"NZD {most_expensive_row['max_price_7d']:,.2f}"
+    most_expensive_sub  = f"{most_expensive_row['product_name']} (7d)"
+    cheapest_avg_val    = f"NZD {cheapest_avg_row['avg_price_7d']:,.2f}"
+    cheapest_avg_sub    = f"{cheapest_avg_row['product_name']} (7d)"
+else:
+    most_expensive      = df_stats_filtered.loc[df_stats_filtered["Max Price (NZD)"].idxmax()]
+    cheapest_avg        = df_stats_filtered.loc[df_stats_filtered["Avg Price (NZD)"].idxmin()]
+    most_expensive_val  = f"NZD {most_expensive['Max Price (NZD)']:,.2f}"
+    most_expensive_sub  = most_expensive["Product"]
+    cheapest_avg_val    = f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}"
+    cheapest_avg_sub    = cheapest_avg["Product"]
+
+most_sellers = df_stats_filtered.loc[df_stats_filtered["Seller Count"].idxmax()]
+best_deal    = df_stats_filtered.loc[df_stats_filtered["Cheapest Price (NZD)"].idxmin()]
 
 # ── PAGE 2: Time-aware insights ────────────────────────────────────────────────
 if has_yesterday:
@@ -889,10 +909,10 @@ def make_card(color, title, value, sub, pct):
 
 # Page 1 — Today's snapshot
 page1 = (
-    make_card("#FF6B6B", "MOST EXPENSIVE TODAY",   f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],               "85%") +
-    make_card("#38ef7d", "LOWEST AVG TODAY",        f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],                 "40%") +
-    make_card("#667eea", "MOST COMPETITIVE TODAY",  f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],                 "70%") +
-    make_card("#f7971e", "BEST DEAL TODAY",         f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'],            "60%")
+    make_card("#FF6B6B", "MOST EXPENSIVE (7D)", most_expensive_val, most_expensive_sub, "85%") +
+    make_card("#38ef7d", "LOWEST AVG (7D)",     cheapest_avg_val,   cheapest_avg_sub,   "40%") +
+    make_card("#667eea", "MOST COMPETITIVE",    f"{int(most_sellers['Seller Count'])} sellers", most_sellers['Product'], "70%") +
+    make_card("#f7971e", "BEST DEAL TODAY",     f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")
 )
 
 # Page 2 — vs Yesterday
@@ -1070,10 +1090,10 @@ html = f"""<!DOCTYPE html>
 
             <!-- PAGE 1: Today's snapshot -->
             <div class="ic-page" id="p0">
-                {make_card("#FF6B6B", "MOST EXPENSIVE TODAY",  f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
-                {make_card("#38ef7d", "LOWEST AVG TODAY",       f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
-                {make_card("#667eea", "MOST COMPETITIVE TODAY", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
-                {make_card("#f7971e", "BEST DEAL TODAY",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
+                {make_card("#FF6B6B", "MOST EXPENSIVE (7D)", most_expensive_val, most_expensive_sub, "85%")}
+                {make_card("#38ef7d", "LOWEST AVG (7D)",     cheapest_avg_val,   cheapest_avg_sub,   "40%")}
+                {make_card("#667eea", "MOST COMPETITIVE",    f"{int(most_sellers['Seller Count'])} sellers", most_sellers['Product'], "70%")}
+                {make_card("#f7971e", "BEST DEAL TODAY",     f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
             </div>
 
             <!-- PAGE 2: vs Yesterday & This Week -->
@@ -1094,10 +1114,10 @@ html = f"""<!DOCTYPE html>
 
             <!-- PAGE 1 CLONE for seamless loop -->
             <div class="ic-page" id="p3">
-                {make_card("#FF6B6B", "MOST EXPENSIVE TODAY",  f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
-                {make_card("#38ef7d", "LOWEST AVG TODAY",       f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
-                {make_card("#667eea", "MOST COMPETITIVE TODAY", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
-                {make_card("#f7971e", "BEST DEAL TODAY",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
+                {make_card("#FF6B6B", "MOST EXPENSIVE (7D)", most_expensive_val, most_expensive_sub, "85%")}
+                {make_card("#38ef7d", "LOWEST AVG (7D)",     cheapest_avg_val,   cheapest_avg_sub,   "40%")}
+                {make_card("#667eea", "MOST COMPETITIVE",    f"{int(most_sellers['Seller Count'])} sellers", most_sellers['Product'], "70%")}
+                {make_card("#f7971e", "BEST DEAL TODAY",     f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
             </div>
 
         </div>

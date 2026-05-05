@@ -223,3 +223,28 @@ PRICE_CHANGE_VS_LAST_WEEK = """
     SELECT * FROM joined
     ORDER BY ABS(pct_change_week) DESC
 """
+
+PRICE_STATS_LAST_7_DAYS = """
+    WITH last_7 AS (
+        SELECT
+            product_name,
+            category,
+            avg_price,
+            snapshot_date
+        FROM dev_marts.fact_price_changes
+        WHERE snapshot_date >= (
+            SELECT MAX(snapshot_date) - 6
+            FROM dev_marts.fact_price_changes
+        )
+    )
+    SELECT
+        product_name,
+        category,
+        MAX(avg_price)  AS max_price_7d,
+        MIN(avg_price)  AS min_price_7d,
+        AVG(avg_price)  AS avg_price_7d,
+        MAX(snapshot_date) AS latest_date
+    FROM last_7
+    GROUP BY product_name, category
+    ORDER BY max_price_7d DESC
+"""

@@ -612,27 +612,115 @@ if len(df_time["snapshot_date"].unique()) > 1:
     # ── Slider ─────────────────────────────────────────────────────────────────
     slider_col, _ = st.columns([1, 3])
     with slider_col:
+
+        # ── Style selectboxes to match dashboard theme ─────────────────────────
         st.markdown("""
-            <p style='
-                text-align: center;
-                color: rgba(255,255,255,0.5);
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 2px;
-                text-transform: uppercase;
-                margin-bottom: 4px;
-            '>Date Range</p>
+            <style>
+                /* Container */
+                div[data-testid="stSelectbox"] {
+                    background: rgba(255,255,255,0.03) !important;
+                    border-radius: 10px !important;
+                    border: 1px solid rgba(255,107,107,0.25) !important;
+                    padding: 2px 4px !important;
+                    transition: border-color 0.2s ease !important;
+                }
+                div[data-testid="stSelectbox"]:hover {
+                    border-color: rgba(255,107,107,0.6) !important;
+                }
+
+                /* Label */
+                div[data-testid="stSelectbox"] label p {
+                    color: rgba(255,255,255,0.5) !important;
+                    font-size: 9px !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 2px !important;
+                    text-transform: uppercase !important;
+                }
+
+                /* Selected value */
+                div[data-testid="stSelectbox"] [data-baseweb="select"] div {
+                    background: transparent !important;
+                    color: #FF6B6B !important;
+                    font-weight: 700 !important;
+                    font-size: 12px !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                }
+
+                /* Dropdown arrow */
+                div[data-testid="stSelectbox"] svg {
+                    fill: #FF6B6B !important;
+                }
+
+                /* Dropdown menu */
+                [data-baseweb="popover"] ul {
+                    background: #1a1d2e !important;
+                    border: 1px solid rgba(255,107,107,0.2) !important;
+                    border-radius: 10px !important;
+                }
+
+                /* Dropdown options */
+                [data-baseweb="popover"] li {
+                    color: rgba(255,255,255,0.7) !important;
+                    font-size: 12px !important;
+                    background: transparent !important;
+                }
+
+                /* Dropdown option hover */
+                [data-baseweb="popover"] li:hover {
+                    background: rgba(255,107,107,0.15) !important;
+                    color: #FF6B6B !important;
+                }
+            </style>
         """, unsafe_allow_html=True)
 
-        if total_days > 1:
-            selected_start, selected_end = st.select_slider(
-                " ",
-                options=all_dates,
-                value=(default_start, default_end),
-                format_func=lambda d: d.strftime("%d %b"),
+        # ── Custom header ──────────────────────────────────────────────────────
+        st.markdown("""
+            <div style='
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 8px;
+            '>
+                <div style='
+                    width: 3px; height: 16px;
+                    background: linear-gradient(180deg, #FF6B6B, #f7971e);
+                    border-radius: 2px;
+                '></div>
+                <span style='
+                    color: rgba(255,255,255,0.5);
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                '>Date Range</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # ── Two selectboxes ────────────────────────────────────────────────────
+        date_options = {d.strftime("%d %b %Y"): d for d in all_dates}
+        date_labels  = list(date_options.keys())
+        default_start_idx = max(0, len(all_dates) - 7)
+        default_end_idx   = len(all_dates) - 1
+
+        from_col, to_col = st.columns(2)
+        with from_col:
+            start_label = st.selectbox(
+                "FROM",
+                options=date_labels,
+                index=default_start_idx,
+                key="date_start"
             )
-        else:
-            selected_start = selected_end = all_dates[0]
+        with to_col:
+            end_label = st.selectbox(
+                "TO",
+                options=date_labels,
+                index=default_end_idx,
+                key="date_end"
+            )
+
+        selected_start = date_options[start_label]
+        selected_end   = date_options[end_label]
 
         # ── Info pill ──────────────────────────────────────────────────────────
         days_shown = len(
@@ -641,8 +729,9 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 (df_time["snapshot_date"] <= selected_end)
             ]["snapshot_date"].unique()
         )
+
         st.markdown(f"""
-            <div style='margin-top: -8px; margin-bottom: 8px;'>
+            <div style='margin-top: 4px;'>
                 <span style='
                     background: rgba(255,107,107,0.08);
                     border: 1px solid rgba(255,107,107,0.25);
@@ -652,6 +741,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                     font-size: 10px;
                     font-family: -apple-system, sans-serif;
                     letter-spacing: 0.5px;
+                    display: inline-block;
                 '>
                     <span style='color:#FF6B6B; font-weight:700;'>
                         {selected_start.strftime("%d %b %Y")}
@@ -660,7 +750,8 @@ if len(df_time["snapshot_date"].unique()) > 1:
                     <span style='color:#FF6B6B; font-weight:700;'>
                         {selected_end.strftime("%d %b %Y")}
                     </span>
-                    &nbsp;·&nbsp;{days_shown}d
+                    &nbsp;·&nbsp;
+                    <span style='color:#FF6B6B; font-weight:700;'>{days_shown}d</span>
                 </span>
             </div>
         """, unsafe_allow_html=True)

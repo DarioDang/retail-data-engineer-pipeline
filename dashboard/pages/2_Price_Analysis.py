@@ -544,6 +544,9 @@ if selected_category != "All":
     ]
 
 # ── STEP 5: Average Price Over Time ───────────────────────────────────────────
+# ── STEP 5: Average Price Over Time ───────────────────────────────────────────
+import streamlit.components.v1 as components
+
 st.subheader("AVERAGE PRICE OVER TIME")
 df_time = run_query(AVG_PRICE_OVER_TIME)
 df_time["snapshot_date"] = pd.to_datetime(df_time["snapshot_date"]).dt.date
@@ -556,78 +559,249 @@ if len(df_time["snapshot_date"].unique()) > 1:
     all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
-    # ── Slider styling ─────────────────────────────────────────────────────────
-    st.markdown("""
-        <style>
-            /* Track background */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[class*="Track"] {
-                background: rgba(255,255,255,0.08) !important;
-                height: 4px !important;
-                border-radius: 4px !important;
-            }
-            /* Active track (between handles) */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="progressbar"] {
-                background: linear-gradient(90deg, #FF6B6B, #f7971e) !important;
-                height: 4px !important;
-            }
-            /* Handles */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"] {
-                background: #FF6B6B !important;
-                border: 2px solid white !important;
-                width: 16px !important;
-                height: 16px !important;
-                box-shadow: 0 0 8px rgba(255,107,107,0.6) !important;
-            }
-            /* Tick labels */
-            div[data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stTickBar"] {
-                color: rgba(255,255,255,0.4) !important;
-                font-size: 10px !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+    default_start     = all_dates[-min(7, total_days)]
+    default_end       = all_dates[-1]
+    default_start_idx = all_dates.index(default_start)
+    default_end_idx   = len(all_dates) - 1
+    dates_str         = [d.strftime("%Y-%m-%d") for d in all_dates]
 
-    # ── Slider in left ─────────────────────────────────────────────
-    default_start = all_dates[-min(7, total_days)]
-    default_end   = all_dates[-1]
+    # ── Custom HTML slider (visual only) ──────────────────────────────────────
+    slider_html = f"""
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{ background: transparent; }}
 
+        .slider-wrapper {{
+            width: 360px;
+            padding: 14px 18px 10px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+        }}
+
+        .slider-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }}
+
+        .slider-label {{
+            color: rgba(255,255,255,0.5);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-family: -apple-system, sans-serif;
+            text-transform: uppercase;
+        }}
+
+        .slider-pill {{
+            background: rgba(255,107,107,0.12);
+            border: 1px solid rgba(255,107,107,0.35);
+            border-radius: 20px;
+            padding: 3px 12px;
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            font-family: -apple-system, sans-serif;
+            letter-spacing: 0.5px;
+        }}
+
+        .slider-pill b {{
+            color: #FF6B6B;
+        }}
+
+        .range-track-wrapper {{
+            position: relative;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }}
+
+        .range-track {{
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+        }}
+
+        .range-fill {{
+            position: absolute;
+            height: 4px;
+            background: linear-gradient(90deg, #FF6B6B, #f7971e);
+            border-radius: 4px;
+            pointer-events: none;
+            transition: left 0.05s, width 0.05s;
+        }}
+
+        input[type=range] {{
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            -webkit-appearance: none;
+            pointer-events: none;
+        }}
+
+        input[type=range]::-webkit-slider-thumb {{
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #FF6B6B;
+            border: 2.5px solid white;
+            box-shadow: 0 0 10px rgba(255,107,107,0.7);
+            cursor: grab;
+            pointer-events: all;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }}
+
+        input[type=range]::-webkit-slider-thumb:hover {{
+            transform: scale(1.25);
+            box-shadow: 0 0 18px rgba(255,107,107,1);
+            cursor: grabbing;
+        }}
+
+        input[type=range]::-webkit-slider-thumb:active {{
+            transform: scale(1.3);
+            cursor: grabbing;
+        }}
+
+        .date-row {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2px;
+        }}
+
+        .date-chip {{
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-family: -apple-system, sans-serif;
+        }}
+
+        .date-chip .dot {{
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #FF6B6B;
+            box-shadow: 0 0 4px rgba(255,107,107,0.8);
+        }}
+
+        .date-chip span {{
+            color: rgba(255,255,255,0.7);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }}
+
+        .arrow {{
+            color: rgba(255,107,107,0.6);
+            font-size: 12px;
+            font-family: sans-serif;
+        }}
+    </style>
+
+    <div class="slider-wrapper">
+        <div class="slider-header">
+            <span class="slider-label">📅 Date Range</span>
+            <span class="slider-pill"><b id="pill-days">{default_end_idx - default_start_idx + 1}</b>d selected</span>
+        </div>
+
+        <div class="range-track-wrapper">
+            <div class="range-track"></div>
+            <div class="range-fill" id="fill"></div>
+            <input type="range" id="slider-min"
+                min="0" max="{len(all_dates)-1}"
+                value="{default_start_idx}" step="1">
+            <input type="range" id="slider-max"
+                min="0" max="{len(all_dates)-1}"
+                value="{default_end_idx}" step="1">
+        </div>
+
+        <div class="date-row">
+            <div class="date-chip">
+                <div class="dot"></div>
+                <span id="label-start">{default_start.strftime("%d %b %Y")}</span>
+            </div>
+            <span class="arrow">→</span>
+            <div class="date-chip">
+                <div class="dot"></div>
+                <span id="label-end">{default_end.strftime("%d %b %Y")}</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dates     = {dates_str};
+        const sliderMin = document.getElementById("slider-min");
+        const sliderMax = document.getElementById("slider-max");
+        const fill      = document.getElementById("fill");
+        const pillDays  = document.getElementById("pill-days");
+        const labelStart = document.getElementById("label-start");
+        const labelEnd   = document.getElementById("label-end");
+
+        function formatDate(d) {{
+            const months = ["Jan","Feb","Mar","Apr","May","Jun",
+                           "Jul","Aug","Sep","Oct","Nov","Dec"];
+            const p = d.split("-");
+            return p[2] + " " + months[parseInt(p[1])-1] + " " + p[0];
+        }}
+
+        function updateFill() {{
+            const min   = parseInt(sliderMin.value);
+            const max   = parseInt(sliderMax.value);
+            const total = dates.length - 1;
+            const left  = (min / total) * 100;
+            const right = (max / total) * 100;
+
+            fill.style.left  = left + "%";
+            fill.style.width = (right - left) + "%";
+
+            labelStart.textContent = formatDate(dates[min]);
+            labelEnd.textContent   = formatDate(dates[max]);
+            pillDays.textContent   = (max - min + 1);
+        }}
+
+        sliderMin.addEventListener("input", () => {{
+            if (parseInt(sliderMin.value) >= parseInt(sliderMax.value))
+                sliderMin.value = parseInt(sliderMax.value) - 1;
+            updateFill();
+        }});
+
+        sliderMax.addEventListener("input", () => {{
+            if (parseInt(sliderMax.value) <= parseInt(sliderMin.value))
+                sliderMax.value = parseInt(sliderMin.value) + 1;
+            updateFill();
+        }});
+
+        updateFill();
+    </script>
+    """
+
+    components.html(slider_html, height=120)
+
+    # ── Hidden Streamlit slider for actual filtering ────────────────────────────
+    # This drives the actual Python filtering logic
     slider_col, _ = st.columns([1, 4])
     with slider_col:
         if total_days > 1:
             selected_start, selected_end = st.select_slider(
-                " ",
+                "date_range_hidden",
                 options=all_dates,
                 value=(default_start, default_end),
                 format_func=lambda d: d.strftime("%d %b"),
+                label_visibility="collapsed"
             )
         else:
             selected_start = selected_end = all_dates[0]
-
-        # Info pill below slider
-        days_shown = len(
-            df_time[
-                (df_time["snapshot_date"] >= selected_start) &
-                (df_time["snapshot_date"] <= selected_end)
-            ]["snapshot_date"].unique()
-        )
-        st.markdown(f"""
-            <div style='display: flex; align-items: center; gap: 8px; margin-top: -4px;'>
-                <span style='
-                    background: rgba(255,107,107,0.12);
-                    border: 1px solid rgba(255,107,107,0.3);
-                    border-radius: 20px;
-                    padding: 2px 10px;
-                    color: rgba(255,255,255,0.6);
-                    font-size: 11px;
-                    letter-spacing: 0.5px;
-                '>
-                    {selected_start.strftime("%d %b %Y")}
-                    <span style='color: #FF6B6B; margin: 0 4px;'>→</span>
-                    {selected_end.strftime("%d %b %Y")}
-                    &nbsp;·&nbsp;
-                    <span style='color: #FF6B6B; font-weight: 700;'>{days_shown}d</span>
-                </span>
-            </div>
-        """, unsafe_allow_html=True)
 
     # ── Filter by selected range ───────────────────────────────────────────────
     df_time_filtered = df_time[

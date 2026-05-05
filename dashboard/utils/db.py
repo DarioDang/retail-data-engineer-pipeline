@@ -39,21 +39,23 @@ def get_engine():
 
 def get_cache_ttl() -> int:
     """
-    Return cache TTL in seconds.
-    - Between 8:00pm - 8:30pm NZT → no cache (0 seconds)
-      so users see fresh data right after pipeline runs
-    - All other times → 55 minute cache
+    Calculate seconds until next 8pm NZT pipeline run.
+    Cache lives exactly until the next pipeline execution.
     """
     nz_tz = pytz.timezone("Pacific/Auckland")
     now = datetime.now(nz_tz)
-    hour = now.hour
-    minute = now.minute
 
-    # Pipeline runs at 8pm NZT — disable cache 8:00-8:30pm
-    if hour == 20 and minute <= 30:
-        return 0  # no cache during pipeline window
+    # Next 8pm NZT
+    next_pipeline = now.replace(hour=20, minute=0, second=0, microsecond=0)
 
-    return 55 * 60  # 55 minutes in seconds
+    # If already past 8pm today → next pipeline is 8pm tomorrow
+    if now >= next_pipeline:
+        from datetime import timedelta
+        next_pipeline += timedelta(days=1)
+
+    # Seconds until next pipeline run
+    ttl = int((next_pipeline - now).total_seconds())
+    return ttl
 
 @st.cache_data(ttl=get_cache_ttl())
 def run_query(sql: str) -> pd.DataFrame:

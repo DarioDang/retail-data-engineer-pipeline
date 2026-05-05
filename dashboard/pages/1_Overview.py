@@ -5,10 +5,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from utils.queries import AVG_PRICE_OVER_TIME, DISCOUNT_PRODUCTS
 from utils.sidebar import render_sidebar
-from utils.styles import hide_streamlit_ui
 from PIL import Image
 import os 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from utils.styles import hide_streamlit_ui
 sys.path.append("..")
 from utils.sidebar import render_sidebar, BG_BASE64
 

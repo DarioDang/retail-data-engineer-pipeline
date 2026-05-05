@@ -578,22 +578,6 @@ if len(df_time["snapshot_date"].unique()) > 1:
     df_time_filtered = df_time[df_time["snapshot_date"] >= cutoff_date]
     days_shown = len(df_time_filtered["snapshot_date"].unique())
 
-    # ── Active range badge ─────────────────────────────────────────────────────
-    extra = "(more data available — select a wider range)" if days_shown < total_days else ""
-    st.markdown(f"""
-        <div style='margin: 8px 0 16px 0;'>
-            <span style='background: rgba(255,107,107,0.15);
-                border: 1px solid rgba(255,107,107,0.4);
-                border-radius: 12px; padding: 3px 12px;
-                color: #FF6B6B; font-size: 11px; font-weight: 700;
-                letter-spacing: 1px;'>
-                ● {selected_range} — {days_shown} day{"s" if days_shown != 1 else ""} of data
-            </span>
-            <span style='color: rgba(255,255,255,0.3); font-size: 11px;
-                margin-left: 8px;'>{extra}</span>
-        </div>
-    """, unsafe_allow_html=True)
-
     # ── Charts ─────────────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
 

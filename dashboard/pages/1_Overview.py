@@ -1,24 +1,28 @@
-import streamlit as st 
-import plotly.express as px 
-import sys 
-import pandas as pd 
-import plotly.graph_objects as go
-from utils.queries import AVG_PRICE_OVER_TIME, DISCOUNT_PRODUCTS
-from utils.sidebar import render_sidebar
-from PIL import Image
-import os 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from utils.styles import hide_streamlit_ui
-sys.path.append("..")
-from utils.sidebar import render_sidebar, BG_BASE64
+import sys
+import os
 
-# Load custom icon
+# ── Path setup first ───────────────────────────────────────────────────────────
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+# ── Standard imports ───────────────────────────────────────────────────────────
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from PIL import Image
+
+# ── Local imports ──────────────────────────────────────────────────────────────
+from utils.db import run_query
+from utils.sidebar import render_sidebar, BG_BASE64
+from utils.styles import hide_streamlit_ui
+from utils.queries import (
+    TOTAL_LISTINGS, TOTAL_PRODUCTS, TOTAL_SELLERS,
+    CATEGORY_SUMMARY, AVG_PRICE_OVER_TIME, DISCOUNT_PRODUCTS
+)
+
+# ── Page config ────────────────────────────────────────────────────────────────
 icon_path = os.path.join(os.path.dirname(__file__), "..", "static", "overview.png")
 icon = Image.open(icon_path)
-from utils.db import run_query
-from utils.queries import (
-    TOTAL_LISTINGS, TOTAL_PRODUCTS, TOTAL_SELLERS,CATEGORY_SUMMARY
-)
 
 st.set_page_config(layout="wide")
 

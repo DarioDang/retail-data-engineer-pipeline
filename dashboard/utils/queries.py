@@ -187,9 +187,6 @@ PRICE_CHANGE_VS_LAST_WEEK = """
         FROM dev_marts.fact_price_changes
         ORDER BY snapshot_date DESC
     ),
-    date_count AS (
-        SELECT COUNT(*) AS total FROM all_dates
-    ),
     latest AS (
         SELECT snapshot_date AS today_date
         FROM all_dates
@@ -210,16 +207,19 @@ PRICE_CHANGE_VS_LAST_WEEK = """
         SELECT product_name, avg_price AS week_price
         FROM dev_marts.fact_price_changes
         WHERE snapshot_date = (SELECT old_date FROM oldest)
+    ),
+    joined AS (
+        SELECT
+            t.product_name,
+            t.category,
+            t.today_price,
+            w.week_price,
+            ROUND(
+                ((t.today_price - w.week_price) / NULLIF(w.week_price, 0) * 100)::numeric, 2
+            ) AS pct_change_week
+        FROM today_prices t
+        JOIN old_prices w ON t.product_name = w.product_name
     )
-    SELECT
-        t.product_name,
-        t.category,
-        t.today_price,
-        w.week_price,
-        ROUND(
-            ((t.today_price - w.week_price) / NULLIF(w.week_price, 0) * 100)::numeric, 2
-        ) AS pct_change_week
-    FROM today_prices t
-    JOIN old_prices w ON t.product_name = w.product_name
+    SELECT * FROM joined
     ORDER BY ABS(pct_change_week) DESC
 """

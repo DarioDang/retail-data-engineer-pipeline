@@ -377,13 +377,141 @@ df_cheapest      = run_query(CHEAPEST_SELLER_PER_PRODUCT)
 col1, col2 = st.columns(2)
 
 # Top Rated Sellers 
+# ── Rating + Cheapest Seller Section ──────────────────────────────────────────
+df_rating   = run_query(RATING_BY_SELLER)
+df_cheapest = run_query(CHEAPEST_SELLER_PER_PRODUCT)
+
+col1, col2 = st.columns(2)
+
+# ── Animation CSS ──────────────────────────────────────────────────────────────
+st.markdown("""
+    <style>
+        @keyframes shimmerCard {
+            0%   { left: -100%; }
+            100% { left: 200%; }
+        }
+        @keyframes pulseBar {
+            0%   { opacity: 0.6; }
+            50%  { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        @keyframes floatBadge {
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-2px); }
+        }
+        @keyframes glowBorder {
+            0%,100% { box-shadow: 0 0 0px rgba(56,239,125,0); }
+            50%      { box-shadow: 0 0 12px rgba(56,239,125,0.15); }
+        }
+        @keyframes scanCard {
+            0%   { top: -40%; }
+            100% { top: 140%; }
+        }
+        @keyframes priceGlow {
+            0%,100% { text-shadow: 0 0 0px rgba(56,239,125,0); }
+            50%      { text-shadow: 0 0 12px rgba(56,239,125,0.6); }
+        }
+        @keyframes barFlow {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .rated-card {
+            background: linear-gradient(135deg, #1a1d2e, #1E2130);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            animation: glowBorder 3s ease-in-out infinite;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .rated-card:hover {
+            transform: translateX(4px);
+        }
+        .rated-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(255,255,255,0.025),
+                transparent
+            );
+            animation: scanCard 4s linear infinite;
+            pointer-events: none;
+        }
+        .rated-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.02),
+                transparent
+            );
+            animation: shimmerCard 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .badge-float {
+            animation: floatBadge 2.5s ease-in-out infinite;
+            display: inline-block;
+        }
+        .bar-animated {
+            background: linear-gradient(
+                90deg,
+                var(--bar-color),
+                var(--bar-color-light),
+                var(--bar-color)
+            );
+            background-size: 200% 100%;
+            animation: barFlow 2s linear infinite, pulseBar 2s ease-in-out infinite;
+        }
+        .cheap-card {
+            background: linear-gradient(135deg, #1a1d2e, #1E2130);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .cheap-card:hover {
+            transform: translateX(4px);
+        }
+        .cheap-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(255,255,255,0.025),
+                transparent
+            );
+            animation: scanCard 4s linear infinite;
+            pointer-events: none;
+        }
+        .price-glow {
+            animation: priceGlow 2.5s ease-in-out infinite;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# ── col1: Top Rated Sellers ────────────────────────────────────────────────────
 with col1:
     st.markdown("""
         <p style='color: white; font-size: 13px; font-weight: 700;
         letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
         padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);
-        text-align: center;'>
-        Top Rated Sellers</p>
+        text-align: center;'>Top Rated Sellers</p>
     """, unsafe_allow_html=True)
 
     if df_rating.empty:
@@ -397,17 +525,20 @@ with col1:
             rank = idx + 1
 
             if row["avg_rating"] >= 4.5:
-                color = "#38ef7d"
-                badge = "EXCELLENT"
-                rgba  = "56,239,125"
+                color     = "#38ef7d"
+                color_dim = "#38ef7d44"
+                badge     = "EXCELLENT"
+                rgba      = "56,239,125"
             elif row["avg_rating"] >= 4.0:
-                color = "#f7971e"
-                badge = "GOOD"
-                rgba  = "247,151,30"
+                color     = "#f7971e"
+                color_dim = "#f7971e44"
+                badge     = "GOOD"
+                rgba      = "247,151,30"
             else:
-                color = "#FF6B6B"
-                badge = "FAIR"
-                rgba  = "255,107,107"
+                color     = "#FF6B6B"
+                color_dim = "#FF6B6B44"
+                badge     = "FAIR"
+                rgba      = "255,107,107"
 
             full_stars = int(row["avg_rating"])
             stars_html = "★" * full_stars + "☆" * (5 - full_stars)
@@ -415,104 +546,82 @@ with col1:
 
             if rank == 1:   medal = "🥇"
             elif rank == 2: medal = "🥈"
-            elif rank == 3: medal = "🥉"
-            else:           medal = f"<span style='color:rgba(255,255,255,0.3); font-size:11px; font-weight:700;'>#{rank}</span>"
+            else:           medal = "🥉"
 
             st.markdown(f"""
-                <div style='
-                    background: linear-gradient(135deg, #1a1d2e, #1E2130);
-                    border-radius: 10px;
-                    padding: 10px 14px;
-                    margin-bottom: 8px;
-                    border-left: 3px solid {color};
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    min-height: 130px;
-                '>
-                    <div style='min-width: 28px; text-align: center; font-size: 16px;'>
-                        {medal}
-                    </div>
-                    <div style='flex: 1; min-width: 0;'>
-                        <div style='display: flex; justify-content: space-between;
-                            align-items: center; margin-bottom: 4px;'>
-                            <span style='color: white; font-size: 12px; font-weight: 600;
-                                white-space: nowrap; overflow: hidden;
-                                text-overflow: ellipsis; max-width: 160px;
-                                display: block;'>{row['seller']}</span>
-                            <span style='background: rgba({rgba},0.15);
-                                border: 1px solid {color}; border-radius: 6px;
-                                padding: 1px 6px; color: {color}; font-size: 9px;
-                                font-weight: 700; letter-spacing: 1px;
-                                margin-left: 8px; white-space: nowrap;'>{badge}</span>
-                        </div>
-                        <div style='display: flex; align-items: center;
-                            gap: 6px; margin-bottom: 5px;'>
-                            <span style='color: {color}; font-size: 11px;
-                                letter-spacing: 1px;'>{stars_html}</span>
-                            <span style='color: {color}; font-size: 12px;
-                                font-weight: 800;'>{row['avg_rating']:.1f}</span>
-                            <span style='color: rgba(255,255,255,0.3);
-                                font-size: 10px;'>({row['total_reviews']:,} reviews)</span>
-                        </div>
-                        <div style='background: rgba(255,255,255,0.06);
-                            border-radius: 20px; height: 3px; overflow: hidden;'>
-                            <div style='width: {bar_width:.1f}%; height: 100%;
-                                border-radius: 20px;
-                                background: linear-gradient(90deg, {color}, {color}88);'>
+                <div class='rated-card' style='border-left: 3px solid {color};
+                    min-height: 110px;'
+                    onmouseover="this.style.boxShadow='0 8px 24px rgba({rgba},0.2)';this.style.transform='translateX(4px)';"
+                    onmouseout="this.style.boxShadow='';this.style.transform='translateX(0)';">
+
+                    <div style='display:flex; align-items:center; gap:12px;'>
+                        <!-- Medal -->
+                        <div style='font-size:20px; min-width:28px;
+                            text-align:center;'>{medal}</div>
+
+                        <div style='flex:1; min-width:0;'>
+                            <!-- Seller + Badge -->
+                            <div style='display:flex; justify-content:space-between;
+                                align-items:center; margin-bottom:6px;'>
+                                <span style='color:white; font-size:13px;
+                                    font-weight:700; white-space:nowrap;
+                                    overflow:hidden; text-overflow:ellipsis;
+                                    max-width:160px;'>{row['seller']}</span>
+                                <span class='badge-float' style='
+                                    background:rgba({rgba},0.15);
+                                    border:1px solid {color};
+                                    border-radius:6px; padding:2px 8px;
+                                    color:{color}; font-size:9px;
+                                    font-weight:700; letter-spacing:1px;
+                                    margin-left:8px; white-space:nowrap;'>
+                                    {badge}
+                                </span>
+                            </div>
+
+                            <!-- Stars + Rating -->
+                            <div style='display:flex; align-items:center;
+                                gap:6px; margin-bottom:8px;'>
+                                <span style='color:{color}; font-size:13px;
+                                    letter-spacing:1px;'>{stars_html}</span>
+                                <span style='color:{color}; font-size:13px;
+                                    font-weight:800;'>{row['avg_rating']:.1f}</span>
+                                <span style='color:rgba(255,255,255,0.3);
+                                    font-size:10px;'>
+                                    ({row['total_reviews']:,} reviews)
+                                </span>
+                            </div>
+
+                            <!-- Animated bar -->
+                            <div style='background:rgba(255,255,255,0.06);
+                                border-radius:20px; height:3px; overflow:hidden;'>
+                                <div class='bar-animated' style='
+                                    width:{bar_width:.1f}%; height:100%;
+                                    border-radius:20px;
+                                    --bar-color:{color};
+                                    --bar-color-light:{color_dim};'>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
 
-        # Legend
-        st.markdown("<div style='margin-top: 8px;'>", unsafe_allow_html=True)
-        leg_col1, leg_col2, leg_col3 = st.columns(3)
-        with leg_col1:
-            st.markdown(
-                "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:8px; height:8px; border-radius:50%; background:#38ef7d;'></div>"
-                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>≥ 4.5 Excellent</span></div>",
-                unsafe_allow_html=True
-            )
-        with leg_col2:
-            st.markdown(
-                "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:8px; height:8px; border-radius:50%; background:#f7971e;'></div>"
-                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>≥ 4.0 Good</span></div>",
-                unsafe_allow_html=True
-            )
-        with leg_col3:
-            st.markdown(
-                "<div style='display:flex; align-items:center; gap:6px; justify-content:center;'>"
-                "<div style='width:8px; height:8px; border-radius:50%; background:#FF6B6B;'></div>"
-                "<span style='color:rgba(255,255,255,0.5); font-size:10px;'>< 4.0 Fair</span></div>",
-                unsafe_allow_html=True
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ── RIGHT: Cheapest Seller per Product ────────────────────────────────────────
+# ── col2: Cheapest Seller per Category ────────────────────────────────────────
 with col2:
     st.markdown("""
         <p style='color: white; font-size: 13px; font-weight: 700;
         letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
         padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);
-        text-align: center;'>
-        Cheapest Seller per Category</p>
+        text-align: center;'>Cheapest Seller per Category</p>
     """, unsafe_allow_html=True)
 
     df_cheapest = run_query("""
         WITH ranked AS (
             SELECT
-                product_name,
-                category,
-                seller,
-                price,
+                product_name, category, seller, price,
                 AVG(price) OVER (PARTITION BY category) AS avg_price,
                 ROW_NUMBER() OVER (
-                    PARTITION BY category
-                    ORDER BY price ASC
+                    PARTITION BY category ORDER BY price ASC
                 ) AS rn
             FROM dev_staging.stg_electronic_products
             WHERE snapshot_date = (
@@ -521,15 +630,11 @@ with col2:
             )
         )
         SELECT
-            category,
-            product_name,
-            seller,
+            category, product_name, seller,
             ROUND(price::numeric, 2)     AS min_price,
             ROUND(avg_price::numeric, 2) AS avg_price,
             ROUND(((avg_price - price) / avg_price * 100)::numeric, 1) AS savings_pct
-        FROM ranked
-        WHERE rn = 1
-        ORDER BY category
+        FROM ranked WHERE rn = 1 ORDER BY category
     """)
 
     if df_cheapest.empty:
@@ -538,62 +643,72 @@ with col2:
         max_price = df_cheapest["min_price"].max()
 
         for _, row in df_cheapest.iterrows():
-            color = CATEGORY_COLORS.get(row["category"], "#667eea")
-            pct   = (row["min_price"] / max_price) * 100
+            color     = CATEGORY_COLORS.get(row["category"], "#667eea")
+            color_hex = color.lstrip("#")
+            r         = int(color_hex[0:2], 16)
+            g         = int(color_hex[2:4], 16)
+            b         = int(color_hex[4:6], 16)
+            pct       = (row["min_price"] / max_price) * 100
 
             st.markdown(f"""
-                <div style='
-                    background: linear-gradient(135deg, #1a1d2e, #1E2130);
-                    border-radius: 12px;
-                    padding: 16px 18px;
-                    margin-bottom: 12px;
-                    border-left: 3px solid {color};
-                '>
-                    <table style='width: 100%; border-collapse: collapse;
-                                  margin-bottom: 10px;'>
+                <div class='cheap-card' style='border-left: 3px solid {color};
+                    min-height: 110px;'
+                    onmouseover="this.style.boxShadow='0 8px 24px rgba({r},{g},{b},0.2)';this.style.transform='translateX(4px)';"
+                    onmouseout="this.style.boxShadow='';this.style.transform='translateX(0)';">
+
+                    <table style='width:100%; border-collapse:collapse;
+                        margin-bottom:10px;'>
                         <tr>
-                            <td style='color: {color}; font-size: 11px;
-                                       font-weight: 700; letter-spacing: 1.5px;
-                                       padding: 0 0 6px 0;'>
+                            <td style='color:{color}; font-size:11px;
+                                font-weight:700; letter-spacing:1.5px;
+                                padding:0 0 6px 0;'>
                                 {row['category'].upper()}
                             </td>
-                            <td style='text-align: right; padding: 0 0 6px 0;
-                                       color: #38ef7d; font-size: 11px;
-                                       font-weight: 700;'>
-                                💚 Save {row['savings_pct']}%
+                            <td style='text-align:right; padding:0 0 6px 0;'>
+                                <span class='badge-float' style='
+                                    color:#38ef7d; font-size:11px;
+                                    font-weight:700;'>
+                                    💚 Save {row['savings_pct']}%
+                                </span>
                             </td>
                         </tr>
                         <tr>
-                            <td style='color: white; font-size: 13px;
-                                       font-weight: 700; padding: 0 0 2px 0;'>
+                            <td style='color:white; font-size:13px;
+                                font-weight:700; padding:0 0 2px 0;'>
                                 {row['product_name']}
                             </td>
-                            <td style='text-align: right; color: #38ef7d;
-                                       font-size: 18px; font-weight: 800;
-                                       padding: 0;'>
-                                NZD {row['min_price']:,.2f}
+                            <td style='text-align:right; padding:0;'>
+                                <span class='price-glow' style='
+                                    color:#38ef7d; font-size:18px;
+                                    font-weight:800;
+                                    --glow-color:rgba(56,239,125,0.6);'>
+                                    NZD {row['min_price']:,.2f}
+                                </span>
                             </td>
                         </tr>
                         <tr>
-                            <td style='color: gray; font-size: 11px; padding: 0;'>
+                            <td style='color:gray; font-size:11px; padding:0;'>
                                 via {row['seller']}
                             </td>
-                            <td style='text-align: right; color: gray;
-                                       font-size: 10px; padding: 0;'>
+                            <td style='text-align:right; color:gray;
+                                font-size:10px; padding:0;'>
                                 Avg: NZD {row['avg_price']:,.2f}
                             </td>
                         </tr>
                     </table>
-                    <div style='background: rgba(255,255,255,0.06);
-                                border-radius: 20px; height: 5px; overflow: hidden;'>
-                        <div style='width: {pct:.1f}%; height: 100%;
-                                    border-radius: 20px;
-                                    background: linear-gradient(90deg, {color}, {color}88);'>
+
+                    <!-- Animated bar -->
+                    <div style='background:rgba(255,255,255,0.06);
+                        border-radius:20px; height:4px; overflow:hidden;'>
+                        <div class='bar-animated' style='
+                            width:{pct:.1f}%; height:100%;
+                            border-radius:20px;
+                            --bar-color:{color};
+                            --bar-color-light:{color}44;'>
                         </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-
 
 st.divider()
 

@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from utils.queries import AVG_PRICE_OVER_TIME, DISCOUNT_PRODUCTS
 from utils.sidebar import render_sidebar
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils.styles import hide_streamlit_ui
 from PIL import Image
 import os 
@@ -20,6 +21,9 @@ from utils.queries import (
 )
 
 st.set_page_config(layout="wide")
+
+# Hide the background streamlit 
+hide_streamlit_ui
 
 # Same global CSS — copy paste this block to every page
 st.markdown(f"""
@@ -60,8 +64,7 @@ st.markdown(f"""
 # Add sidebar
 render_sidebar()
 
-# Hide the background streamlit 
-hide_streamlit_ui
+
 
 st.markdown(
     """

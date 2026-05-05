@@ -483,7 +483,7 @@ with col1:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <img src='app/static/serpapi-icon.png' width='50'/>
-            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>dbt</b><br>Google Shopping</p>
+            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>SerpAPI</b>><br>Google Shopping</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -494,7 +494,7 @@ with col2:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <img src='app/static/dlt-icon.png' width='50'/>
-            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>dbt</b><br>Data Loading</p>
+            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>dlt</b><br>Data Loading</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -505,7 +505,7 @@ with col3:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <img src='app/static/aws-s3-icon.png' width='50'/>
-            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>dbt</b><br>Data Lake</p>
+            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>AWS S3</b><br>Data Lake</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -516,7 +516,7 @@ with col4:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <img src='app/static/amazon-rds-icon.png' width='50'/>
-            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>dbt</b><br>Data Warehouse</p>
+            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>AWS RDS</b><br>Data Warehouse</p>
         </div>
     """, unsafe_allow_html=True)
 

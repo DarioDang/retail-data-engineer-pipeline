@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from utils.queries import AVG_PRICE_OVER_TIME, DISCOUNT_PRODUCTS
 from utils.sidebar import render_sidebar
+from utils.styles import hide_streamlit_ui
 from PIL import Image
 import os 
 sys.path.append("..")
@@ -58,6 +59,9 @@ st.markdown(f"""
 
 # Add sidebar
 render_sidebar()
+
+# Hide the background streamlit 
+hide_streamlit_ui
 
 st.markdown(
     """

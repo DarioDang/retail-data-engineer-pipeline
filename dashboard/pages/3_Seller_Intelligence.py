@@ -1,7 +1,6 @@
 import streamlit as st 
 import plotly.express as px 
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import sys
 sys.path.append("..") 
 
@@ -12,6 +11,7 @@ from utils.queries import (
 )
 
 from utils.sidebar import render_sidebar, BG_BASE64
+from utils.styles import hide_streamlit_ui
 
 CATEGORY_COLORS = {
     "laptop": "#667eea",
@@ -60,6 +60,9 @@ st.markdown(f"""
 
 # Add sidebar
 render_sidebar()
+
+# Hide streamlit background
+hide_streamlit_ui
 
 st.markdown("""
     <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">

@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import plotly.express as px 
 import pandas as pd 
 import plotly.graph_objects as go 
+from utils.styles import hide_streamlit_ui
 import sys 
 import random
 sys.path.append("..")
@@ -54,6 +55,9 @@ st.markdown(f"""
 
 # Add sidebar
 render_sidebar()
+
+# Hide streamlit background
+hide_streamlit_ui
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -617,7 +621,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 margin-bottom: 4px;
             '>Date Range</p>
         """, unsafe_allow_html=True)
-        
+
         if total_days > 1:
             selected_start, selected_end = st.select_slider(
                 " ",

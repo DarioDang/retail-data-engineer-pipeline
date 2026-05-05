@@ -389,7 +389,7 @@ with col1:
     if df_rating.empty:
         st.info("No rating data available yet.")
     else:
-        df_top_rated = df_rating.nlargest(10, "avg_rating").sort_values(
+        df_top_rated = df_rating.nlargest(3, "avg_rating").sort_values(
             "avg_rating", ascending=False
         ).reset_index(drop=True)
 

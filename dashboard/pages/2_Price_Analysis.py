@@ -647,7 +647,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                     white-space: nowrap !important;
                     overflow: visible !important;
                     text-overflow: unset !important;
-                    min-height: 16px !important;
+                    min-height: 28px !important;
                     padding: 2px 4px !important;
                 }
                 /* Dropdown arrow */
@@ -686,7 +686,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                     border-radius:2px;'></div>
                 <span style='color:rgba(255,255,255,0.4); font-size:9px;
                     font-weight:700; letter-spacing:2px;
-                    text-transform:uppercase;'>📅 Date Range</span>
+                    text-transform:uppercase;'>Date Range</span>
             </div>
         """, unsafe_allow_html=True)
 

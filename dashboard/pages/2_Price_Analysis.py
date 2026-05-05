@@ -792,29 +792,85 @@ st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 # ── STEP 7: Price Statistics Insight Cards ─────────────────────────────────────
+# ── STEP 7: Price Statistics Insight Cards (Time-Aware) ────────────────────────
 st.subheader("PRICE STATISTICS PER PRODUCT")
 
-most_expensive  = df_stats_filtered.loc[df_stats_filtered["Max Price (NZD)"].idxmax()]
-cheapest_avg    = df_stats_filtered.loc[df_stats_filtered["Avg Price (NZD)"].idxmin()]
-most_sellers    = df_stats_filtered.loc[df_stats_filtered["Seller Count"].idxmax()]
-best_deal       = df_stats_filtered.loc[df_stats_filtered["Cheapest Price (NZD)"].idxmin()]
+# ── Fetch time-aware data ──────────────────────────────────────────────────────
+df_yesterday = run_query(PRICE_CHANGE_VS_YESTERDAY)
+df_week      = run_query(PRICE_CHANGE_VS_LAST_WEEK)
 
-has_savings = "Savings %"        in df_stats_filtered.columns
-has_reviews = "Avg Reviews"      in df_stats_filtered.columns
-has_rating  = "Avg Rating"       in df_stats_filtered.columns
-has_min     = "Min Price (NZD)"  in df_stats_filtered.columns
+# ── Apply category filter ──────────────────────────────────────────────────────
+if selected_category != "All":
+    df_yesterday = df_yesterday[df_yesterday["category"] == selected_category]
+    df_week      = df_week[df_week["category"] == selected_category]
 
-highest_savings = df_stats_filtered.loc[df_stats_filtered["Savings %"].idxmax()]      if has_savings else best_deal
-most_reviewed   = df_stats_filtered.loc[df_stats_filtered["Avg Reviews"].idxmax()]    if has_reviews else most_sellers
-highest_rated   = df_stats_filtered.loc[df_stats_filtered["Avg Rating"].idxmax()]     if has_rating  else cheapest_avg
+# ── Fallback to df_stats_filtered if not enough time data ─────────────────────
+has_yesterday = len(df_yesterday) > 0
+has_week      = len(df_week) > 0
+
+# ── PAGE 1: Today's snapshot insights ─────────────────────────────────────────
+most_expensive = df_stats_filtered.loc[df_stats_filtered["Max Price (NZD)"].idxmax()]
+cheapest_avg   = df_stats_filtered.loc[df_stats_filtered["Avg Price (NZD)"].idxmin()]
+most_sellers   = df_stats_filtered.loc[df_stats_filtered["Seller Count"].idxmax()]
+best_deal      = df_stats_filtered.loc[df_stats_filtered["Cheapest Price (NZD)"].idxmin()]
+
+# ── PAGE 2: Time-aware insights ────────────────────────────────────────────────
+if has_yesterday:
+    # Biggest price jump vs yesterday
+    biggest_jump = df_yesterday.loc[df_yesterday["pct_change"].idxmax()]
+    jump_val     = f"▲ {biggest_jump['pct_change']:.1f}%"
+    jump_sub     = biggest_jump["product_name"]
+    jump_color   = "#FF6B6B"
+
+    # Biggest price drop vs yesterday
+    biggest_drop = df_yesterday.loc[df_yesterday["pct_change"].idxmin()]
+    drop_val     = f"▼ {abs(biggest_drop['pct_change']):.1f}%"
+    drop_sub     = biggest_drop["product_name"]
+    drop_color   = "#38ef7d"
+else:
+    jump_val   = "N/A"
+    jump_sub   = "Need 2+ days of data"
+    jump_color = "#FF6B6B"
+    drop_val   = "N/A"
+    drop_sub   = "Need 2+ days of data"
+    drop_color = "#38ef7d"
+
+if has_week:
+    # Biggest weekly price drop (best time to buy)
+    best_weekly  = df_week.loc[df_week["pct_change_week"].idxmin()]
+    weekly_val   = f"▼ {abs(best_weekly['pct_change_week']):.1f}%"
+    weekly_sub   = f"{best_weekly['product_name']} vs last week"
+    weekly_color = "#00c9ff"
+
+    # Biggest weekly price jump (price alert)
+    alert_weekly  = df_week.loc[df_week["pct_change_week"].idxmax()]
+    alert_val     = f"▲ {alert_weekly['pct_change_week']:.1f}%"
+    alert_sub     = f"{alert_weekly['product_name']} vs last week"
+    alert_color   = "#f953c6"
+else:
+    weekly_val   = "N/A"
+    weekly_sub   = "Need 7+ days of data"
+    weekly_color = "#00c9ff"
+    alert_val    = "N/A"
+    alert_sub    = "Need 7+ days of data"
+    alert_color  = "#f953c6"
+
+# ── Ratings & reviews from stats ──────────────────────────────────────────────
+has_reviews = "Avg Reviews" in df_stats_filtered.columns
+has_rating  = "Avg Rating"  in df_stats_filtered.columns
+has_min     = "Min Price (NZD)" in df_stats_filtered.columns
+has_savings = "Savings %" in df_stats_filtered.columns
+
+most_reviewed   = df_stats_filtered.loc[df_stats_filtered["Avg Reviews"].idxmax()] if has_reviews else most_sellers
+highest_rated   = df_stats_filtered.loc[df_stats_filtered["Avg Rating"].idxmax()]  if has_rating  else cheapest_avg
 price_range_row = df_stats_filtered.loc[(df_stats_filtered["Max Price (NZD)"] - df_stats_filtered["Min Price (NZD)"]).idxmax()] if has_min else most_expensive
 
-savings_val = f"{highest_savings['Savings %']:.1f}%"                                                              if has_savings else "N/A"
-reviews_val = f"{int(most_reviewed['Avg Reviews']):,}"                                                             if has_reviews else "N/A"
-rating_val  = f"★ {highest_rated['Avg Rating']:.1f}"                                                              if has_rating  else "N/A"
-range_val   = f"NZD {(price_range_row['Max Price (NZD)'] - price_range_row['Min Price (NZD)']):,.2f}"             if has_min     else "N/A"
-range_prod  = price_range_row['Product']                                                                           if has_min     else most_expensive['Product']
+reviews_val = f"{int(most_reviewed['Avg Reviews']):,}" if has_reviews else "N/A"
+rating_val  = f"★ {highest_rated['Avg Rating']:.1f}"   if has_rating  else "N/A"
+range_val   = f"NZD {(price_range_row['Max Price (NZD)'] - price_range_row['Min Price (NZD)']):,.2f}" if has_min else "N/A"
+range_prod  = price_range_row["Product"] if has_min else most_expensive["Product"]
 
+# ── Build pages ────────────────────────────────────────────────────────────────
 def make_card(color, title, value, sub, pct):
     return f"""<div class="ic-wrap" style="--ic:{color};"
          onmouseover="this.style.boxShadow='0 12px 30px {color}33';this.style.transform='translateY(-5px)';"
@@ -831,19 +887,29 @@ def make_card(color, title, value, sub, pct):
         </div>
     </div>"""
 
+# Page 1 — Today's snapshot
 page1 = (
-    make_card("#FF6B6B", "MOST EXPENSIVE",   f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%") +
-    make_card("#38ef7d", "LOWEST AVG PRICE", f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%") +
-    make_card("#667eea", "MOST COMPETITIVE", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%") +
-    make_card("#f7971e", "BEST DEAL",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")
+    make_card("#FF6B6B", "MOST EXPENSIVE TODAY",   f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],               "85%") +
+    make_card("#38ef7d", "LOWEST AVG TODAY",        f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],                 "40%") +
+    make_card("#667eea", "MOST COMPETITIVE TODAY",  f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],                 "70%") +
+    make_card("#f7971e", "BEST DEAL TODAY",         f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'],            "60%")
 )
+
+# Page 2 — vs Yesterday
 page2 = (
-    make_card("#f953c6", "HIGHEST SAVINGS",  savings_val,  highest_savings['Product'],  "75%") +
-    make_card("#00c9ff", "MOST REVIEWED",    reviews_val,  most_reviewed['Product'],    "55%") +
-    make_card("#fddb92", "HIGHEST RATED",    rating_val,   highest_rated['Product'],    "65%") +
-    make_card("#a8edea", "BIGGEST RANGE",    range_val,    range_prod,                  "50%")
+    make_card(jump_color,   "PRICE JUMP ↑ VS YESTERDAY",  jump_val,   jump_sub,                              "85%") +
+    make_card(drop_color,   "PRICE DROP ↓ VS YESTERDAY",  drop_val,   drop_sub,                              "40%") +
+    make_card(alert_color,  "PRICE ALERT ↑ THIS WEEK",    alert_val,  alert_sub,                             "75%") +
+    make_card(weekly_color, "BEST DROP ↓ THIS WEEK",      weekly_val, weekly_sub,                            "55%")
 )
-all_cards = page1 + page2 + page1
+
+# Page 3 — Historical stats
+page3 = (
+    make_card("#fddb92", "HIGHEST RATED",    rating_val,  highest_rated['Product'] if has_rating else "N/A",  "65%") +
+    make_card("#00c9ff", "MOST REVIEWED",    reviews_val, most_reviewed['Product'] if has_reviews else "N/A", "55%") +
+    make_card("#a8edea", "BIGGEST RANGE",    range_val,   range_prod,                                         "50%") +
+    make_card("#f953c6", "MOST SELLERS",     f"{int(most_sellers['Seller Count'])} sellers", most_sellers['Product'], "70%")
+)
 
 html = f"""<!DOCTYPE html>
 <html>
@@ -899,7 +965,6 @@ html = f"""<!DOCTYPE html>
         right:0;
         background:linear-gradient(to left,#0e1117,transparent);
     }}
-
     .ic-track {{
         display: flex;
         flex-wrap: nowrap;
@@ -907,15 +972,12 @@ html = f"""<!DOCTYPE html>
         transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
         will-change: transform;
     }}
-
-    /* Each page is a flex row of 4 cards */
     .ic-page {{
         display: flex;
         flex-shrink: 0;
         gap: 12px;
         padding: 0 40px;
     }}
-
     .ic-wrap {{
         position: relative;
         border-radius: 14px;
@@ -928,10 +990,9 @@ html = f"""<!DOCTYPE html>
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         cursor: default;
         flex: 1;
-        height: 170px;        
-        min-height: 170px;   
+        height: 170px;
+        min-height: 170px;
     }}
-
     .ic-bar {{
         position:absolute; top:0; left:0; right:0;
         height:3px; background:var(--ic);
@@ -1007,28 +1068,36 @@ html = f"""<!DOCTYPE html>
     <div class="ic-outer" id="icOuter">
         <div class="ic-track" id="icTrack">
 
-            <!-- PAGE 1 -->
+            <!-- PAGE 1: Today's snapshot -->
             <div class="ic-page" id="p0">
-                {make_card("#FF6B6B", "MOST EXPENSIVE",   f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
-                {make_card("#38ef7d", "LOWEST AVG PRICE", f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
-                {make_card("#667eea", "MOST COMPETITIVE", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
-                {make_card("#f7971e", "BEST DEAL",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
+                {make_card("#FF6B6B", "MOST EXPENSIVE TODAY",  f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
+                {make_card("#38ef7d", "LOWEST AVG TODAY",       f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
+                {make_card("#667eea", "MOST COMPETITIVE TODAY", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
+                {make_card("#f7971e", "BEST DEAL TODAY",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
             </div>
 
-            <!-- PAGE 2 -->
+            <!-- PAGE 2: vs Yesterday & This Week -->
             <div class="ic-page" id="p1">
-                {make_card("#f953c6", "HIGHEST SAVINGS", savings_val, highest_savings['Product'], "75%")}
-                {make_card("#00c9ff", "MOST REVIEWED",   reviews_val, most_reviewed['Product'],   "55%")}
-                {make_card("#fddb92", "HIGHEST RATED",   rating_val,  highest_rated['Product'],   "65%")}
-                {make_card("#a8edea", "BIGGEST RANGE",   range_val,   range_prod,                 "50%")}
+                {make_card(jump_color,   "PRICE JUMP ↑ VS YESTERDAY", jump_val,   jump_sub,   "85%")}
+                {make_card(drop_color,   "PRICE DROP ↓ VS YESTERDAY", drop_val,   drop_sub,   "40%")}
+                {make_card(alert_color,  "PRICE ALERT ↑ THIS WEEK",   alert_val,  alert_sub,  "75%")}
+                {make_card(weekly_color, "BEST DROP ↓ THIS WEEK",     weekly_val, weekly_sub, "55%")}
+            </div>
+
+            <!-- PAGE 3: Historical stats -->
+            <div class="ic-page" id="p2">
+                {make_card("#fddb92", "HIGHEST RATED",  rating_val,  highest_rated['Product'] if has_rating else "N/A",  "65%")}
+                {make_card("#00c9ff", "MOST REVIEWED",  reviews_val, most_reviewed['Product'] if has_reviews else "N/A", "55%")}
+                {make_card("#a8edea", "BIGGEST RANGE",  range_val,   range_prod,                                         "50%")}
+                {make_card("#f953c6", "MOST SELLERS",   f"{int(most_sellers['Seller Count'])} sellers", most_sellers['Product'], "70%")}
             </div>
 
             <!-- PAGE 1 CLONE for seamless loop -->
-            <div class="ic-page" id="p2">
-                {make_card("#FF6B6B", "MOST EXPENSIVE",   f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
-                {make_card("#38ef7d", "LOWEST AVG PRICE", f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
-                {make_card("#667eea", "MOST COMPETITIVE", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
-                {make_card("#f7971e", "BEST DEAL",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
+            <div class="ic-page" id="p3">
+                {make_card("#FF6B6B", "MOST EXPENSIVE TODAY",  f"NZD {most_expensive['Max Price (NZD)']:,.2f}", most_expensive['Product'],    "85%")}
+                {make_card("#38ef7d", "LOWEST AVG TODAY",       f"NZD {cheapest_avg['Avg Price (NZD)']:,.2f}",   cheapest_avg['Product'],      "40%")}
+                {make_card("#667eea", "MOST COMPETITIVE TODAY", f"{int(most_sellers['Seller Count'])} sellers",   most_sellers['Product'],      "70%")}
+                {make_card("#f7971e", "BEST DEAL TODAY",        f"NZD {best_deal['Cheapest Price (NZD)']:,.2f}", best_deal['Cheapest Seller'], "60%")}
             </div>
 
         </div>
@@ -1037,19 +1106,23 @@ html = f"""<!DOCTYPE html>
     <div class="ic-indicators">
         <div class="ic-dot active" id="dot0"></div>
         <div class="ic-dot"        id="dot1"></div>
+        <div class="ic-dot"        id="dot2"></div>
     </div>
 
     <script>
         const track  = document.getElementById('icTrack');
         const outer  = document.getElementById('icOuter');
-        const dot0   = document.getElementById('dot0');
-        const dot1   = document.getElementById('dot1');
+        const dots   = [
+            document.getElementById('dot0'),
+            document.getElementById('dot1'),
+            document.getElementById('dot2'),
+        ];
         let   page   = 0;
         let   timer  = null;
         let   locked = false;
+        const TOTAL  = 3;
 
         function init() {{
-            // Set each page width = outer width
             const W = outer.offsetWidth;
             document.querySelectorAll('.ic-page').forEach(p => {{
                 p.style.width    = W + 'px';
@@ -1058,8 +1131,7 @@ html = f"""<!DOCTYPE html>
         }}
 
         function setDots(p) {{
-            dot0.classList.toggle('active', p === 0);
-            dot1.classList.toggle('active', p === 1);
+            dots.forEach((d, i) => d.classList.toggle('active', i === p));
         }}
 
         function slideTo(p, animate) {{
@@ -1073,15 +1145,16 @@ html = f"""<!DOCTYPE html>
         function next() {{
             if (locked) return;
             locked = true;
-            if (page === 0) {{
-                page = 1;
-                setDots(1);
-                slideTo(1, true);
+            const nextPage = page + 1;
+            if (nextPage < TOTAL) {{
+                page = nextPage;
+                setDots(page);
+                slideTo(page, true);
                 setTimeout(() => {{ locked = false; }}, 900);
             }} else {{
-                page = 2;
+                // slide to clone then snap back to page 0
+                slideTo(TOTAL, true);
                 setDots(0);
-                slideTo(2, true);
                 setTimeout(() => {{
                     slideTo(0, false);
                     page = 0;

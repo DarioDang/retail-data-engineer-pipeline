@@ -122,7 +122,7 @@ if __name__ == "__main__":
     ).deploy(
         name="retail-daily-pipeline",
         work_pool_name="retail-managed-pool",
-        cron="0 20 * * *",  # 8pm NZT = 8am UTC daily
+        cron="0 8 * * *",  # 8pm NZT = 8am UTC daily
         job_variables={
             "pip_packages": [
                 "prefect-aws",

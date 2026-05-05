@@ -483,7 +483,7 @@ with col1:
     st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <img src='app/static/serpapi-icon.png' width='50'/>
-            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>SerpAPI</b>><br>Google Shopping</p>
+            <p style='color: gray; margin-top: 10px; font-size: 10px;'><b>SerpAPI</b><br>Google Shopping</p>
         </div>
     """, unsafe_allow_html=True)
 

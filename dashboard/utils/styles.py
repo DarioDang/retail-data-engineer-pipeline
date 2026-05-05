@@ -17,5 +17,16 @@ def hide_streamlit_ui():
             .main .block-container {
                 padding-top: 2rem !important;
             }
+            [data-testid="stBottomBlockContainer"] {{
+                display: none !important;
+            }}
+
+            [data-testid="stDecoration"] {{
+                display: none !important;
+            }}
+
+            button[kind="managedApp"] {{
+                display: none !important;
+            }}
         </style>
     """, unsafe_allow_html=True)

@@ -21,6 +21,12 @@ def get_base64_image(image_path):
 BG_PATH = os.path.join(os.path.dirname(__file__), "..", "image", "background", "background-1.jpg")
 BG_BASE64 = get_base64_image(BG_PATH)
 
+# Load portfolio icon
+portfolio_icon_path = os.path.join(os.path.dirname(__file__), "static", "portfolio-sidebar-icon.png")
+with open(portfolio_icon_path, "rb") as f:
+    portfolio_icon_b64 = base64.b64encode(f.read()).decode()
+
+
 def render_sidebar():
     st.markdown(f"""
         <style>
@@ -253,9 +259,11 @@ def render_sidebar():
                         <span class='footer-link-text'>LinkedIn</span>
                     </a>
                     <a class='footer-link portfolio'
-                    href='https://dariodang.github.io/'
-                    target='_blank'>
-                        <span class='footer-link-icon'>🌐</span>
+                        href='https://dariodang.github.io/'
+                        target='_blank'>
+                        <img src='data:image/png;base64,{portfolio_icon_b64}' 
+                            width='18' height='18'
+                            style='vertical-align:middle; margin-right:0px;'/>
                         <span class='footer-link-text'>Portfolio</span>
                     </a>
                 </div>

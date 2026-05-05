@@ -553,42 +553,53 @@ if selected_category != "All":
 
 if len(df_time["snapshot_date"].unique()) > 1:
     products = sorted(df_time["product_name"].unique().tolist())
-
-    # ── Range filter buttons ───────────────────────────────────────────────────
-    all_dates = sorted(df_time["snapshot_date"].unique())
+    all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
+    # ── Button styling ─────────────────────────────────────────────────────────
     st.markdown("""
-        <div style='display: flex; align-items: center; gap: 8px;
-            margin-bottom: 12px;'>
-            <span style='color: rgba(255,255,255,0.5); font-size: 12px;
-                letter-spacing: 1px;'>SHOW:</span>
-        </div>
+        <style>
+            div[data-testid="column"] button {
+                background: rgba(255,255,255,0.05) !important;
+                border: 1px solid rgba(255,255,255,0.15) !important;
+                color: rgba(255,255,255,0.7) !important;
+                border-radius: 8px !important;
+                font-size: 11px !important;
+                font-weight: 700 !important;
+                letter-spacing: 1px !important;
+                transition: all 0.2s ease !important;
+            }
+            div[data-testid="column"] button:hover {
+                background: rgba(255,107,107,0.2) !important;
+                border-color: #FF6B6B !important;
+                color: #FF6B6B !important;
+            }
+        </style>
     """, unsafe_allow_html=True)
 
-    range_options = ["7D", "14D", "30D", "All"]
+    # ── Range selector ─────────────────────────────────────────────────────────
+    st.markdown("""
+        <p style='color: rgba(255,255,255,0.5); font-size: 12px;
+            letter-spacing: 1px; margin-bottom: 8px;'>SHOW LAST:</p>
+    """, unsafe_allow_html=True)
+
     range_col1, range_col2, range_col3, range_col4, _ = st.columns([1,1,1,1,6])
+    with range_col1: btn_7d  = st.button("7D",  key="range_7d",  use_container_width=True)
+    with range_col2: btn_14d = st.button("14D", key="range_14d", use_container_width=True)
+    with range_col3: btn_30d = st.button("30D", key="range_30d", use_container_width=True)
+    with range_col4: btn_all = st.button("All", key="range_all", use_container_width=True)
 
-    with range_col1:
-        btn_7d  = st.button("7D",  key="range_7d",  use_container_width=True)
-    with range_col2:
-        btn_14d = st.button("14D", key="range_14d", use_container_width=True)
-    with range_col3:
-        btn_30d = st.button("30D", key="range_30d", use_container_width=True)
-    with range_col4:
-        btn_all = st.button("All", key="range_all", use_container_width=True)
-
-    # ── Determine selected range ───────────────────────────────────────────────
+    # ── Session state for range ────────────────────────────────────────────────
     if "time_range" not in st.session_state:
-        st.session_state.time_range = "7D"  # default to 7 days
-
+        st.session_state.time_range = "7D"
     if btn_7d:  st.session_state.time_range = "7D"
     if btn_14d: st.session_state.time_range = "14D"
     if btn_30d: st.session_state.time_range = "30D"
     if btn_all: st.session_state.time_range = "All"
 
-    # ── Filter dates based on selected range ──────────────────────────────────
     selected_range = st.session_state.time_range
+
+    # ── Filter by range ────────────────────────────────────────────────────────
     if selected_range == "7D":
         cutoff_date = all_dates[-min(7,  total_days)]
     elif selected_range == "14D":
@@ -599,10 +610,11 @@ if len(df_time["snapshot_date"].unique()) > 1:
         cutoff_date = all_dates[0]
 
     df_time_filtered = df_time[df_time["snapshot_date"] >= cutoff_date]
+    days_shown = len(df_time_filtered["snapshot_date"].unique())
 
-    # ── Show active range indicator ────────────────────────────────────────────
+    # ── Active range badge ─────────────────────────────────────────────────────
     st.markdown(f"""
-        <div style='margin-bottom: 16px;'>
+        <div style='margin: 8px 0 16px 0;'>
             <span style='
                 background: rgba(255,107,107,0.15);
                 border: 1px solid rgba(255,107,107,0.4);
@@ -612,15 +624,21 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 font-size: 11px;
                 font-weight: 700;
                 letter-spacing: 1px;
-            '>● {selected_range} SELECTED — {len(df_time_filtered["snapshot_date"].unique())} days of data</span>
+            '>● {selected_range} — {days_shown} day{"s" if days_shown != 1 else ""} of data</span>
+            <span style='color: rgba(255,255,255,0.3); font-size: 11px;
+                margin-left: 8px;'>
+                {f"(more data available — select a wider range)" if days_shown < total_days else ""}
+            </span>
         </div>
     """, unsafe_allow_html=True)
 
-    # ── Render charts ──────────────────────────────────────────────────────────
+    # ── Charts ─────────────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
 
     for i, product in enumerate(products):
-        df_product = df_time_filtered[df_time_filtered["product_name"] == product].copy()
+        df_product = df_time_filtered[
+            df_time_filtered["product_name"] == product
+        ].copy()
 
         if df_product.empty:
             continue
@@ -630,17 +648,23 @@ if len(df_time["snapshot_date"].unique()) > 1:
         line_color = CATEGORY_COLORS.get(category, "#FF6B6B")
         icon_path  = PRODUCT_ICONS.get(product, "")
 
-        # ── Price change indicator ─────────────────────────────────────────────
+        # ── Price change badge ─────────────────────────────────────────────────
         if len(df_product) >= 2:
-            first_price = df_product["avg_price"].iloc[0]
-            last_price  = df_product["avg_price"].iloc[-1]
-            change_pct  = ((last_price - first_price) / first_price) * 100
+            first_price  = df_product["avg_price"].iloc[0]
+            last_price   = df_product["avg_price"].iloc[-1]
+            change_pct   = ((last_price - first_price) / first_price) * 100
             change_color = "#2ECC71" if change_pct <= 0 else "#FF6B6B"
             change_arrow = "▼" if change_pct <= 0 else "▲"
             change_text  = f"{change_arrow} {abs(change_pct):.1f}%"
         else:
-            change_text  = ""
+            change_text  = "–"
             change_color = "gray"
+
+        # ── Y-axis range (zoom to data, not from 0) ────────────────────────────
+        y_min = df_product["avg_price"].min()
+        y_max = df_product["avg_price"].max()
+        y_padding = (y_max - y_min) * 0.15 if y_max != y_min else y_max * 0.05
+        y_range = [y_min - y_padding, y_max + y_padding]
 
         fig = px.line(
             df_product, x="snapshot_date", y="avg_price",
@@ -654,42 +678,43 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 tickangle=-45,
                 tickmode="array",
                 tickvals=df_product["snapshot_date"].tolist(),
+                tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
+                gridcolor="rgba(255,255,255,0.03)",
+            ),
+            yaxis=dict(
+                range=y_range,
+                tickprefix="$",
+                ticksuffix="",
+                tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
+                gridcolor="rgba(255,255,255,0.05)",
             ),
             showlegend=False,
             height=300,
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=10, b=10, l=10, r=10),
-            yaxis=dict(
-                gridcolor="rgba(255,255,255,0.05)",
-                tickprefix="$",
-                ticksuffix=" NZD",
-            )
         )
+
+        # Fill color from hex
+        r, g, b = int(line_color[1:3], 16), int(line_color[3:5], 16), int(line_color[5:7], 16)
 
         fig.update_traces(
             line_color=line_color,
             line_width=2.5,
-            marker=dict(
-                size=8,
-                color=line_color,
-                line=dict(width=2, color="white")
-            ),
+            marker=dict(size=8, color=line_color, line=dict(width=2, color="white")),
             fill="tozeroy",
-            fillcolor=f"rgba{tuple(list(int(line_color.lstrip('#')[i:i+2], 16) for i in (0,2,4)) + [0.08])}",
+            fillcolor=f"rgba({r},{g},{b},0.08)",
         )
 
         custom_title = f"""
-            <div style='text-align: center; margin-top: 16px;
-                margin-bottom: 4px; padding: 8px 12px;
-                display: flex; align-items: center;
+            <div style='text-align: center; margin-top: 16px; margin-bottom: 4px;
+                padding: 8px 12px; display: flex; align-items: center;
                 justify-content: center; gap: 8px;'>
-                <img src='{icon_path}' width='26'
-                    style='vertical-align: middle;'/>
-                <span style='color: white; font-size: 15px; font-weight: 600;
-                    vertical-align: middle;'>{product}</span>
+                <img src='{icon_path}' width='24' style='vertical-align: middle;'/>
+                <span style='color: white; font-size: 14px; font-weight: 600;'>{product}</span>
                 <span style='color: {change_color}; font-size: 12px;
-                    font-weight: 700;'>{change_text}</span>
+                    font-weight: 700; background: rgba(0,0,0,0.3);
+                    padding: 2px 8px; border-radius: 8px;'>{change_text}</span>
             </div>
         """
 

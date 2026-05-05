@@ -196,7 +196,9 @@ PRICE_CHANGE_VS_LAST_WEEK = """
     week_ago_date AS (
         SELECT MAX(snapshot_date) AS week_ago
         FROM daily
-        WHERE snapshot_date <= (SELECT max_date FROM latest_date) - INTERVAL '6 days'
+        WHERE snapshot_date <= (
+            SELECT max_date::date - 6 FROM latest_date
+        )
     ),
     today AS (
         SELECT product_name, category, avg_price AS today_price, snapshot_date
@@ -214,7 +216,7 @@ PRICE_CHANGE_VS_LAST_WEEK = """
         t.today_price,
         w.week_price,
         t.snapshot_date,
-        ROUND(((t.today_price - w.week_price) / w.week_price * 100)::numeric, 2) AS pct_change_week
+        ROUND(((t.today_price - w.week_price) / NULLIF(w.week_price, 0) * 100)::numeric, 2) AS pct_change_week
     FROM today t
     JOIN week_ago w ON t.product_name = w.product_name
     ORDER BY ABS(pct_change_week) DESC

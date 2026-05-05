@@ -396,29 +396,27 @@ with col1:
         for idx, row in df_top_rated.iterrows():
             rank = idx + 1
 
-            # Color by rating
             if row["avg_rating"] >= 4.5:
                 color = "#38ef7d"
                 badge = "EXCELLENT"
+                rgba  = "56,239,125"
             elif row["avg_rating"] >= 4.0:
                 color = "#f7971e"
                 badge = "GOOD"
+                rgba  = "247,151,30"
             else:
                 color = "#FF6B6B"
                 badge = "FAIR"
+                rgba  = "255,107,107"
 
-            # Star display
-            full_stars  = int(row["avg_rating"])
-            stars_html  = "★" * full_stars + "☆" * (5 - full_stars)
+            full_stars = int(row["avg_rating"])
+            stars_html = "★" * full_stars + "☆" * (5 - full_stars)
+            bar_width  = (row["avg_rating"] / 5.0) * 100
 
-            # Rank medal for top 3
             if rank == 1:   medal = "🥇"
             elif rank == 2: medal = "🥈"
             elif rank == 3: medal = "🥉"
             else:           medal = f"<span style='color:rgba(255,255,255,0.3); font-size:11px; font-weight:700;'>#{rank}</span>"
-
-            # Rating bar width
-            bar_width = (row["avg_rating"] / 5.0) * 100
 
             st.markdown(f"""
                 <div style='
@@ -431,56 +429,24 @@ with col1:
                     align-items: center;
                     gap: 12px;
                 '>
-                    <!-- Rank -->
-                    <div style='
-                        min-width: 28px;
-                        text-align: center;
-                        font-size: 16px;
-                    '>{medal}</div>
-
-                    <!-- Main content -->
+                    <div style='min-width: 28px; text-align: center; font-size: 16px;'>
+                        {medal}
+                    </div>
                     <div style='flex: 1; min-width: 0;'>
-                        <div style='
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            margin-bottom: 4px;
-                        '>
-                            <span style='
-                                color: white;
-                                font-size: 12px;
-                                font-weight: 600;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                                max-width: 160px;
-                                display: block;
-                            '>{row['seller']}</span>
-                            <span style='
-                                background: rgba({
-                                    "56,239,125" if color == "#38ef7d"
-                                    else "247,151,30" if color == "#f7971e"
-                                    else "255,107,107"
-                                },0.15);
-                                border: 1px solid {color};
-                                border-radius: 6px;
-                                padding: 1px 6px;
-                                color: {color};
-                                font-size: 9px;
-                                font-weight: 700;
-                                letter-spacing: 1px;
-                                margin-left: 8px;
-                                white-space: nowrap;
-                            '>{badge}</span>
+                        <div style='display: flex; justify-content: space-between;
+                            align-items: center; margin-bottom: 4px;'>
+                            <span style='color: white; font-size: 12px; font-weight: 600;
+                                white-space: nowrap; overflow: hidden;
+                                text-overflow: ellipsis; max-width: 160px;
+                                display: block;'>{row['seller']}</span>
+                            <span style='background: rgba({rgba},0.15);
+                                border: 1px solid {color}; border-radius: 6px;
+                                padding: 1px 6px; color: {color}; font-size: 9px;
+                                font-weight: 700; letter-spacing: 1px;
+                                margin-left: 8px; white-space: nowrap;'>{badge}</span>
                         </div>
-
-                        <!-- Stars + rating -->
-                        <div style='
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            margin-bottom: 5px;
-                        '>
+                        <div style='display: flex; align-items: center;
+                            gap: 6px; margin-bottom: 5px;'>
                             <span style='color: {color}; font-size: 11px;
                                 letter-spacing: 1px;'>{stars_html}</span>
                             <span style='color: {color}; font-size: 12px;
@@ -488,20 +454,12 @@ with col1:
                             <span style='color: rgba(255,255,255,0.3);
                                 font-size: 10px;'>({row['total_reviews']:,} reviews)</span>
                         </div>
-
-                        <!-- Rating bar -->
-                        <div style='
-                            background: rgba(255,255,255,0.06);
-                            border-radius: 20px;
-                            height: 3px;
-                            overflow: hidden;
-                        '>
-                            <div style='
-                                width: {bar_width:.1f}%;
-                                height: 100%;
+                        <div style='background: rgba(255,255,255,0.06);
+                            border-radius: 20px; height: 3px; overflow: hidden;'>
+                            <div style='width: {bar_width:.1f}%; height: 100%;
                                 border-radius: 20px;
-                                background: linear-gradient(90deg, {color}, {color}88);
-                            '></div>
+                                background: linear-gradient(90deg, {color}, {color}88);'>
+                            </div>
                         </div>
                     </div>
                 </div>

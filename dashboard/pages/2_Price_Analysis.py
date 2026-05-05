@@ -647,7 +647,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                     white-space: nowrap !important;
                     overflow: visible !important;
                     text-overflow: unset !important;
-                    min-height: 28px !important;
+                    min-height: 16px !important;
                     padding: 2px 4px !important;
                 }
                 /* Dropdown arrow */

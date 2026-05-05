@@ -3,6 +3,8 @@ from PIL import Image
 import os 
 import base64
 from utils.sidebar import render_sidebar
+from utils.styles import hide_streamlit_ui
+
 
 # Load custom icon
 icon_path = os.path.join(os.path.dirname(__file__), "static", "retail-headpage.png")
@@ -81,6 +83,9 @@ st.markdown(f"""
 
 # Add the sidebar 
 render_sidebar()
+
+# hide the black background
+hide_streamlit_ui()
 
 # Header 
 

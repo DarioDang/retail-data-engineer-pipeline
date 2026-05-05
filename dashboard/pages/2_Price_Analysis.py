@@ -590,7 +590,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
     default_start = all_dates[-min(7, total_days)]
     default_end   = all_dates[-1]
 
-    slider_col, _ = st.columns([2, 3])
+    slider_col, _ = st.columns([1, 4])
     with slider_col:
         if total_days > 1:
             selected_start, selected_end = st.select_slider(

@@ -586,7 +586,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
         </style>
     """, unsafe_allow_html=True)
 
-    # ── Slider in left column only ─────────────────────────────────────────────
+    # ── Slider in left ─────────────────────────────────────────────
     default_start = all_dates[-min(7, total_days)]
     default_end   = all_dates[-1]
 
@@ -594,7 +594,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
     with slider_col:
         if total_days > 1:
             selected_start, selected_end = st.select_slider(
-                "Date Range",
+                " ",
                 options=all_dates,
                 value=(default_start, default_end),
                 format_func=lambda d: d.strftime("%d %b"),

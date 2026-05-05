@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
+from prefect.client.schemas.schedules import CronSchedule
 from prefect_aws import AwsCredentials
 
 # ── Base paths ─────────────────────────────────────────────────────────────────
@@ -122,7 +123,12 @@ if __name__ == "__main__":
     ).deploy(
         name="retail-daily-pipeline",
         work_pool_name="retail-managed-pool",
-        cron="0 8 * * *",  # 8pm NZT = 8am UTC daily
+        schedules=[
+            CronSchedule(
+                cron="0 20 * * *",
+                timezone="Pacific/Auckland"
+            )
+        ],
         job_variables={
             "pip_packages": [
                 "prefect-aws",

@@ -483,7 +483,7 @@ fig.update_layout(
         orientation="h",
         yanchor="bottom",
         y=1.02,
-        xanchor="center",
+        xanchor="left",
         x=0.5,
         title_text="",
         font=dict(color="rgba(255,255,255,0.6)", size=11)

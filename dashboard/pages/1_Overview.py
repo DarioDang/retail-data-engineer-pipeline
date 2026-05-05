@@ -408,26 +408,44 @@ with col2:
                 unsafe_allow_html=True
             )
 
-# ── Row 3: Price Range Chart
+# ── Row 3: Price Range Chart (Weekly)
 df_trend = run_query(AVG_PRICE_OVER_TIME)
-df_trend["snapshot_date"] = pd.to_datetime(df_trend["snapshot_date"]).dt.date
-df_trend["snapshot_date"] = df_trend["snapshot_date"].astype(str)
+df_trend["snapshot_date"] = pd.to_datetime(df_trend["snapshot_date"])
 
-# Aggregate by category and date
+# ── Aggregate by week and category ────────────────────────────────────────────
+df_trend["week"] = df_trend["snapshot_date"].dt.to_period("W").apply(
+    lambda r: r.start_time.strftime("%d %b")
+)
 df_category_trend = df_trend.groupby(
-    ["snapshot_date", "category"]
+    ["week", "category"]
 )["avg_price"].mean().reset_index()
 df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
 
+# ── Note: show daily if less than 14 days of data ─────────────────────────────
+total_days = df_trend["snapshot_date"].nunique()
+if total_days < 14:
+    # Not enough data for weekly — show daily instead with a note
+    df_trend["snapshot_date"] = df_trend["snapshot_date"].dt.strftime("%d %b")
+    df_category_trend = df_trend.groupby(
+        ["snapshot_date", "category"]
+    )["avg_price"].mean().reset_index()
+    df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
+    df_category_trend = df_category_trend.rename(columns={"snapshot_date": "week"})
+    view_label = "Daily"
+    note = f"(Weekly view activates after 14 days of data — currently {total_days}d)"
+else:
+    view_label = "Weekly"
+    note = ""
+
+# ── Chart ──────────────────────────────────────────────────────────────────────
 fig = px.line(
     df_category_trend,
-    x="snapshot_date",
+    x="week",
     y="avg_price",
     color="category",
     markers=True,
-    title="Average Price Trend by Category Over Time",
     labels={
-        "snapshot_date": "Date",
+        "week": "Period",
         "avg_price": "Avg Price (NZD)",
         "category": "Category"
     },
@@ -440,11 +458,10 @@ fig = px.line(
 
 fig.update_layout(
     title=dict(
-        text="AVERAGE PRICE TREND BY CATEGORY OVER TIME",
+        text=f"AVERAGE PRICE TREND BY CATEGORY — {view_label.upper()} VIEW",
         x=0.5,
         xanchor="center",
-        y=0.95,
-        yanchor="top"
+        font=dict(size=14, color="white")
     ),
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
@@ -453,21 +470,37 @@ fig.update_layout(
         type="category",
         tickangle=-45,
         tickmode="array",
-        tickvals=df_category_trend["snapshot_date"].unique().tolist()
+        tickvals=df_category_trend["week"].unique().tolist(),
+        tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
+        gridcolor="rgba(255,255,255,0.03)",
+    ),
+    yaxis=dict(
+        tickprefix="$",
+        tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
+        gridcolor="rgba(255,255,255,0.05)",
     ),
     legend=dict(
         orientation="h",
         yanchor="bottom",
         y=1.02,
         xanchor="center",
-        x=0.12,
-        title_text=""
+        x=0.5,
+        title_text="",
+        font=dict(color="rgba(255,255,255,0.6)", size=11)
     ),
-    margin=dict(t=100)
+    margin=dict(t=80, b=10, l=10, r=10),
+    height=350,
 )
 
 fig.update_traces(line_width=2.5)
+
+# ── Note below chart ───────────────────────────────────────────────────────────
 st.plotly_chart(fig, use_container_width=True)
+if note:
+    st.markdown(f"""
+        <p style='color: rgba(255,255,255,0.3); font-size: 10px;
+            text-align: center; margin-top: -16px;'>{note}</p>
+    """, unsafe_allow_html=True)
 
 st.divider()
 

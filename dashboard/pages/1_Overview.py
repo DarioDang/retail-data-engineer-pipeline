@@ -412,14 +412,21 @@ with col2:
 df_trend = run_query(AVG_PRICE_OVER_TIME)
 df_trend["snapshot_date"] = pd.to_datetime(df_trend["snapshot_date"])
 
-# ── Aggregate by week and category ────────────────────────────────────────────
-df_trend["week"] = df_trend["snapshot_date"].dt.to_period("W").apply(
-    lambda r: r.start_time.strftime("%d %b")
-)
+# Keep actual date for sorting, format for display
+df_trend["day"] = df_trend["snapshot_date"].dt.date
+df_trend["day_label"] = df_trend["snapshot_date"].dt.strftime("%d %b")
+
 df_category_trend = df_trend.groupby(
-    ["week", "category"]
+    ["day", "day_label", "category"]
 )["avg_price"].mean().reset_index()
 df_category_trend["avg_price"] = df_category_trend["avg_price"].round(2)
+
+# Sort chronologically by actual date
+df_category_trend = df_category_trend.sort_values("day")
+
+# Use label for display but keep order from actual date
+df_category_trend["week"] = df_category_trend["day_label"]
+ordered_labels = df_category_trend["day_label"].unique().tolist()
 
 # ── Note: show daily if less than 14 days of data ─────────────────────────────
 total_days = df_trend["snapshot_date"].nunique()
@@ -470,12 +477,11 @@ fig.update_layout(
         type="category",
         tickangle=-45,
         tickmode="array",
-        # ← sort dates chronologically
-        tickvals=sorted(df_category_trend["week"].unique().tolist()),
+        tickvals=ordered_labels,  
+        categoryorder="array",
+        categoryarray=ordered_labels,  # ← force correct order
         tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
         gridcolor="rgba(255,255,255,0.03)",
-        categoryorder="array",
-        categoryarray=sorted(df_category_trend["week"].unique().tolist()),
     ),
     yaxis=dict(
         tickprefix="$",

@@ -12,7 +12,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils.db import run_query
 from utils.queries import (
     AVG_PRICE_OVER_TIME, PRICE_STATS_PER_PRODUCT,
-    PRICE_RANGE_BY_PRODUCT
+    PRICE_RANGE_BY_PRODUCT, PRICE_CHANGE_VS_YESTERDAY,
+    PRICE_CHANGE_VS_LAST_WEEK
 )
 from utils.sidebar import render_sidebar, BG_BASE64
 

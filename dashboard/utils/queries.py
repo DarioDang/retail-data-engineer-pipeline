@@ -147,3 +147,75 @@ CATEGORY_SUMMARY = """
     FROM dev_marts.agg_category_summary
     ORDER BY category
 """
+
+# ── Time-aware insight queries ─────────────────────────────────────────────────
+
+PRICE_CHANGE_VS_YESTERDAY = """
+    WITH latest AS (
+        SELECT
+            product_name,
+            category,
+            avg_price,
+            snapshot_date,
+            LAG(avg_price) OVER (
+                PARTITION BY product_name ORDER BY snapshot_date
+            ) AS prev_price
+        FROM dev_marts.fact_price_changes
+    ),
+    ranked AS (
+        SELECT *,
+            ROUND(((avg_price - prev_price) / prev_price * 100)::numeric, 2) AS pct_change,
+            ROW_NUMBER() OVER (PARTITION BY product_name ORDER BY snapshot_date DESC) AS rn
+        FROM latest
+        WHERE prev_price IS NOT NULL
+    )
+    SELECT
+        product_name,
+        category,
+        avg_price,
+        prev_price,
+        pct_change,
+        snapshot_date
+    FROM ranked
+    WHERE rn = 1
+    ORDER BY ABS(pct_change) DESC
+"""
+
+PRICE_CHANGE_VS_LAST_WEEK = """
+    WITH daily AS (
+        SELECT
+            product_name,
+            category,
+            avg_price,
+            snapshot_date
+        FROM dev_marts.fact_price_changes
+    ),
+    latest_date AS (
+        SELECT MAX(snapshot_date) AS max_date FROM daily
+    ),
+    week_ago_date AS (
+        SELECT MAX(snapshot_date) AS week_ago
+        FROM daily
+        WHERE snapshot_date <= (SELECT max_date FROM latest_date) - INTERVAL '6 days'
+    ),
+    today AS (
+        SELECT product_name, category, avg_price AS today_price, snapshot_date
+        FROM daily
+        WHERE snapshot_date = (SELECT max_date FROM latest_date)
+    ),
+    week_ago AS (
+        SELECT product_name, avg_price AS week_price
+        FROM daily
+        WHERE snapshot_date = (SELECT week_ago FROM week_ago_date)
+    )
+    SELECT
+        t.product_name,
+        t.category,
+        t.today_price,
+        w.week_price,
+        t.snapshot_date,
+        ROUND(((t.today_price - w.week_price) / w.week_price * 100)::numeric, 2) AS pct_change_week
+    FROM today t
+    JOIN week_ago w ON t.product_name = w.product_name
+    ORDER BY ABS(pct_change_week) DESC
+"""

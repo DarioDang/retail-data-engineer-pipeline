@@ -556,37 +556,84 @@ if len(df_time["snapshot_date"].unique()) > 1:
     all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
-    # ── Date range slider ──────────────────────────────────────────────────────
-    # Default: last 7 days or all if less than 7 days available
+    # ── Slider styling ─────────────────────────────────────────────────────────
+    st.markdown("""
+        <style>
+            /* Track background */
+            div[data-testid="stSlider"] [data-baseweb="slider"] div[class*="Track"] {
+                background: rgba(255,255,255,0.08) !important;
+                height: 4px !important;
+                border-radius: 4px !important;
+            }
+            /* Active track (between handles) */
+            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="progressbar"] {
+                background: linear-gradient(90deg, #FF6B6B, #f7971e) !important;
+                height: 4px !important;
+            }
+            /* Handles */
+            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"] {
+                background: #FF6B6B !important;
+                border: 2px solid white !important;
+                width: 16px !important;
+                height: 16px !important;
+                box-shadow: 0 0 8px rgba(255,107,107,0.6) !important;
+            }
+            /* Tick labels */
+            div[data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stTickBar"] {
+                color: rgba(255,255,255,0.4) !important;
+                font-size: 10px !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # ── Slider in left column only ─────────────────────────────────────────────
     default_start = all_dates[-min(7, total_days)]
     default_end   = all_dates[-1]
 
-    if total_days > 1:
-        selected_start, selected_end = st.select_slider(
-            "Select date range:",
-            options=all_dates,
-            value=(default_start, default_end),
-            format_func=lambda d: d.strftime("%b %d"),
+    slider_col, _ = st.columns([2, 3])
+    with slider_col:
+        if total_days > 1:
+            selected_start, selected_end = st.select_slider(
+                "Date Range",
+                options=all_dates,
+                value=(default_start, default_end),
+                format_func=lambda d: d.strftime("%d %b"),
+            )
+        else:
+            selected_start = selected_end = all_dates[0]
+
+        # Info pill below slider
+        days_shown = len(
+            df_time[
+                (df_time["snapshot_date"] >= selected_start) &
+                (df_time["snapshot_date"] <= selected_end)
+            ]["snapshot_date"].unique()
         )
-    else:
-        selected_start = selected_end = all_dates[0]
+        st.markdown(f"""
+            <div style='display: flex; align-items: center; gap: 8px; margin-top: -4px;'>
+                <span style='
+                    background: rgba(255,107,107,0.12);
+                    border: 1px solid rgba(255,107,107,0.3);
+                    border-radius: 20px;
+                    padding: 2px 10px;
+                    color: rgba(255,255,255,0.6);
+                    font-size: 11px;
+                    letter-spacing: 0.5px;
+                '>
+                    {selected_start.strftime("%d %b %Y")}
+                    <span style='color: #FF6B6B; margin: 0 4px;'>→</span>
+                    {selected_end.strftime("%d %b %Y")}
+                    &nbsp;·&nbsp;
+                    <span style='color: #FF6B6B; font-weight: 700;'>{days_shown}d</span>
+                </span>
+            </div>
+        """, unsafe_allow_html=True)
 
     # ── Filter by selected range ───────────────────────────────────────────────
     df_time_filtered = df_time[
         (df_time["snapshot_date"] >= selected_start) &
         (df_time["snapshot_date"] <= selected_end)
     ]
-    days_shown = len(df_time_filtered["snapshot_date"].unique())
-
-    # ── Range info ─────────────────────────────────────────────────────────────
-    st.markdown(f"""
-        <p style='color: rgba(255,255,255,0.35); font-size: 11px;
-            margin: -8px 0 16px 0; letter-spacing: 0.5px;'>
-            Showing {days_shown} day{"s" if days_shown != 1 else ""} 
-            · {selected_start.strftime("%d %b %Y")} → {selected_end.strftime("%d %b %Y")}
-            {"· <span style='color:#FF6B6B;'>drag handles to adjust range</span>" if total_days > 7 else ""}
-        </p>
-    """, unsafe_allow_html=True)
 
     # ── Charts ─────────────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)

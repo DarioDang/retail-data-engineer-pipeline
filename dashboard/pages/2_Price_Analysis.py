@@ -606,9 +606,21 @@ if len(df_time["snapshot_date"].unique()) > 1:
     # ── Slider ─────────────────────────────────────────────────────────────────
     slider_col, _ = st.columns([1, 3])
     with slider_col:
+        st.markdown("""
+            <p style='
+                text-align: center;
+                color: rgba(255,255,255,0.5);
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            '>Date Range</p>
+        """, unsafe_allow_html=True)
+        
         if total_days > 1:
             selected_start, selected_end = st.select_slider(
-                "📅 date range",
+                " ",
                 options=all_dates,
                 value=(default_start, default_end),
                 format_func=lambda d: d.strftime("%d %b"),

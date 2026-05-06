@@ -104,7 +104,7 @@ def render_sidebar():
 
     with st.sidebar:
         # Branding
-        st.markdown("""
+        st.markdown(f"""
             <div style='padding: 12px 16px 10px 16px;
                         border-bottom: 1px solid rgba(255,255,255,0.12);
                         margin-bottom: 8px;'>

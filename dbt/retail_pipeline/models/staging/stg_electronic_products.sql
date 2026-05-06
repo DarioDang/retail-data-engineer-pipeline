@@ -18,7 +18,6 @@ WITH source AS (
         AND seller IS NOT NULL
 ),
 
--- Step 1: Calculate Q1 and Q3 per category using GROUP BY
 iqr_calc AS (
     SELECT
         LOWER(TRIM(category))                                           AS category,
@@ -28,7 +27,6 @@ iqr_calc AS (
     GROUP BY LOWER(TRIM(category))
 ),
 
--- Step 2: Calculate bounds
 iqr_bounds AS (
     SELECT
         category,
@@ -37,9 +35,9 @@ iqr_bounds AS (
         GREATEST(
             q1 - 3.0 * (q3 - q1),
             CASE
-                WHEN category = 'laptop' THEN 500.0   
-                WHEN category = 'phone'  THEN 200.0   
-                WHEN category = 'camera' THEN 300.0  
+                WHEN category = 'laptop' THEN 500.0
+                WHEN category = 'phone'  THEN 200.0
+                WHEN category = 'camera' THEN 300.0
                 ELSE 10.0
             END
         )                           AS lower_bound,
@@ -47,7 +45,6 @@ iqr_bounds AS (
     FROM iqr_calc
 ),
 
--- Step 3: Join bounds back to source
 flagged AS (
     SELECT
         s.*,
@@ -60,16 +57,16 @@ flagged AS (
         ON LOWER(TRIM(s.category)) = b.category
 ),
 
--- Step 4: Clean and filter
 cleaned AS (
     SELECT
         -- Identifiers
-        _dlt_id AS record_id,
+        _dlt_id                         AS record_id,
+        product_id,
 
         -- Product details
-        TRIM(product_name)      AS product_name,
-        LOWER(TRIM(category))   AS category,
-        TRIM(title)             AS title,
+        TRIM(product_name)              AS product_name,
+        LOWER(TRIM(category))           AS category,
+        TRIM(title)                     AS title,
 
         -- Pricing
         ROUND(price::numeric, 2)        AS price,
@@ -83,7 +80,7 @@ cleaned AS (
         END AS discount_pct,
 
         -- Seller info
-        TRIM(seller) AS seller,
+        TRIM(seller)                    AS seller,
 
         -- Ratings
         ROUND(rating::numeric, 1)       AS rating,
@@ -96,6 +93,18 @@ cleaned AS (
             ELSE false
         END AS has_rating,
 
+        -- Competition: true if multiple sellers offer this product
+        COALESCE(multiple_sources::boolean, false)  AS multiple_sources,
+
+        -- Condition: standardised to lowercase, null = new item
+        LOWER(TRIM(second_hand_condition))          AS condition,
+
+        -- Derived: clean boolean for new vs used
+        CASE
+            WHEN second_hand_condition IS NULL THEN true
+            ELSE false
+        END  AS is_new_condition,
+
         -- IQR bounds for auditing
         ROUND(lower_bound::numeric, 2)  AS price_lower_bound,
         ROUND(upper_bound::numeric, 2)  AS price_upper_bound,
@@ -104,7 +113,7 @@ cleaned AS (
 
         -- Timestamps
         DATE_TRUNC('second', ingested_at::timestamp with time zone) AS ingested_at,
-        DATE(ingested_at AT TIME ZONE 'Pacific/Auckland')  AS snapshot_date
+        DATE(ingested_at AT TIME ZONE 'Pacific/Auckland')           AS snapshot_date
 
     FROM flagged
     WHERE

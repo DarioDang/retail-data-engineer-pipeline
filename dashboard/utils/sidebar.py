@@ -132,7 +132,7 @@ def render_sidebar():
             with col_label:
                 st.page_link(page["target"], label=page["label"])
         
-        # Profile Section
+        # Profile Section — CSS (no f-string needed)
         st.markdown("""
             <style>
                 .sidebar-footer {
@@ -227,7 +227,10 @@ def render_sidebar():
                 .footer-link.linkedin  .footer-link-text { color: #60a5fa; }
                 .footer-link.portfolio .footer-link-text { color: #FF6B6B; }
             </style>
+        """, unsafe_allow_html=True)
 
+        # Profile Section — HTML (f-string for portfolio icon)
+        st.markdown(f"""
             <div class='sidebar-footer'>
                 <div class='footer-profile-row'>
                     <div class='footer-avatar'>DD</div>
@@ -261,7 +264,7 @@ def render_sidebar():
                     <a class='footer-link portfolio'
                         href='https://dariodang.github.io/'
                         target='_blank'>
-                        <img src='data:image/png;base64,{portfolio_icon_b64}' 
+                        <img src='data:image/png;base64,{portfolio_icon_b64}'
                             width='18' height='18'
                             style='vertical-align:middle; margin-right:0px;'/>
                         <span class='footer-link-text'>Portfolio</span>

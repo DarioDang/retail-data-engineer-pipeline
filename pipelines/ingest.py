@@ -32,14 +32,14 @@ client = serpapi.Client(api_key=SERPAPI_KEY)
 
 # ── Product Basket ─────────────────────────────────────────────────────────────
 PRODUCTS = [
-    {"name": "Dell XPS 13",        "query": "Dell XPS 13 laptop",          "category": "laptop"},
+    {"name": "Dell XPS 13",        "query": "Dell XPS 13 laptop",           "category": "laptop"},
     {"name": "MacBook Air M3",      "query": "Apple MacBook Air M3",         "category": "laptop"},
     {"name": "HP Spectre x360",     "query": "HP Spectre x360 laptop",       "category": "laptop"},
     {"name": "iPhone 15",           "query": "Apple iPhone 15 smartphone",   "category": "phone"},
     {"name": "Samsung Galaxy S24",  "query": "Samsung Galaxy S24 phone",     "category": "phone"},
     {"name": "Samsung Galaxy A54",  "query": "Samsung Galaxy A54 phone",     "category": "phone"},
     {"name": "GoPro Hero 13",       "query": "GoPro Hero 13 action camera",  "category": "camera"},
-    {"name": "DJI Osmo Action",     "query": "DJI Osmo Action camera",       "category": "camera"},
+    {"name": "DJI Osmo Action 5",    "query": "DJI Osmo Action 5 camera",    "category": "camera"},
 ]
 
 # ── Fetch ──────────────────────────────────────────────────────────────────────
@@ -90,6 +90,7 @@ def fetch_product(query: str, num_results: int = NUM_RESULTS) -> list[dict]:
 def parse_product(result: dict, category: str, product_name: str) -> dict:
     """Extract and normalize fields from a raw SerpAPI shopping result."""
     return {
+        # ── Existing fields ──────────────────────────────────────────
         "product_name": product_name,
         "category":     category,
         "title":        result.get("title"),
@@ -100,6 +101,11 @@ def parse_product(result: dict, category: str, product_name: str) -> dict:
         "reviews":      int(result["reviews"]) if result.get("reviews") else None,
         "position":     int(result["position"]) if result.get("position") else None,
         "ingested_at":  datetime.now(timezone.utc).isoformat(),
+
+        # ── New fields  ─────────────────────────
+        "product_id":            result.get("product_id"),
+        "multiple_sources":      result.get("multiple_sources", False),
+        "second_hand_condition": result.get("second_hand_condition"),
     }
 
 # ── dlt Resource ───────────────────────────────────────────────────────────────

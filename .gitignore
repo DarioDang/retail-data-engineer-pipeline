@@ -12,6 +12,6 @@ dbt/retail_pipeline/logs
 dbt/retail_pipeline/target
 .vscode
 secrets.txt
-
+backup-script
 .DS_Store
 **/.DS_Store

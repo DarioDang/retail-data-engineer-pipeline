@@ -119,7 +119,7 @@ cleaned AS (
     WHERE
         is_price_too_high = false
         AND is_price_too_low = false
-)
+),
 
 -- ── Product name normalization ─────────────────────────────────────────────
 -- Maps product name variations to canonical names
@@ -152,7 +152,7 @@ normalized AS (
 SELECT
     record_id,
     product_id,
-    product_name_normalized     AS product_name,  -- ← use normalized name
+    product_name_normalized  AS product_name, 
     category,
     title,
     price,

@@ -121,4 +121,55 @@ cleaned AS (
         AND is_price_too_low = false
 )
 
-SELECT * FROM cleaned
+-- ── Product name normalization ─────────────────────────────────────────────
+-- Maps product name variations to canonical names
+-- Add new mappings here whenever a product query changes
+normalized AS (
+    SELECT
+        *,
+        CASE
+            -- DJI Osmo Action variants → canonical name
+            WHEN LOWER(product_name) LIKE '%dji osmo action%' THEN 'DJI Osmo Action'
+            -- GoPro variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%gopro hero%'      THEN 'GoPro Hero 13'
+            -- iPhone variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%iphone 15%'       THEN 'iPhone 15'
+            -- Samsung variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%galaxy s24%'      THEN 'Samsung Galaxy S24'
+            WHEN LOWER(product_name) LIKE '%galaxy a54%'      THEN 'Samsung Galaxy A54'
+            -- MacBook variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%macbook air m3%'  THEN 'MacBook Air M3'
+            -- Dell variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%dell xps 13%'     THEN 'Dell XPS 13'
+            -- HP variants (future proofing)
+            WHEN LOWER(product_name) LIKE '%hp spectre%'      THEN 'HP Spectre x360'
+            -- Default — keep original
+            ELSE product_name
+        END AS product_name_normalized
+    FROM cleaned
+)
+
+SELECT
+    record_id,
+    product_id,
+    product_name_normalized     AS product_name,  -- ← use normalized name
+    category,
+    title,
+    price,
+    old_price,
+    discount_pct,
+    seller,
+    rating,
+    reviews,
+    position,
+    has_rating,
+    multiple_sources,
+    condition,
+    is_new_condition,
+    price_lower_bound,
+    price_upper_bound,
+    is_price_too_high,
+    is_price_too_low,
+    ingested_at,
+    snapshot_date
+FROM normalized

@@ -1,3 +1,13 @@
+{{
+    config(
+        materialized='table',
+        -- When ready to switch: change to 'incremental'
+        -- unique_key='record_id',
+        -- incremental_strategy='merge'
+    )
+}}
+
+
 -- Dimension: unique products in the basket 
 WITH staging AS (
     SELECT DISTINCT 

@@ -1,3 +1,13 @@
+{{
+    config(
+        materialized='table',
+        -- When ready to switch: change to 'incremental'
+        -- unique_key='record_id',
+        -- incremental_strategy='merge'
+    )
+}}
+
+
 -- Fact table: daily price snapshot for each product per seller
 WITH staging AS (
     SELECT 

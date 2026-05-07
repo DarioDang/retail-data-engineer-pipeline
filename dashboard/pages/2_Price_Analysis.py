@@ -411,12 +411,24 @@ with cards_col:
         filtered_deals = filtered_deals[
             filtered_deals["Category"] == selected_category
         ]
-        top4 = filtered_deals.nlargest(4, "Savings %")
-        rank_labels = ["BEST DEAL", "2ND DEAL", "3RD DEAL", "4TH DEAL"]
-        cols = st.columns(2)
-        row1 = [cols[0], cols[1]]
-        row2 = st.columns(2)
-        all_cols = list(row1) + list(row2)
+        top3 = filtered_deals.nlargest(3, "Savings %")
+        rank_labels = ["BEST DEAL", "2ND DEAL", "3RD DEAL"]
+
+        st.markdown("<div style='margin-top: 50px;'></div>", unsafe_allow_html=True)
+
+        # ── Dynamic columns based on actual number of products ─────────────────
+        num_products = len(top3)
+        if num_products == 3:
+            _, c1, c2, c3, _ = st.columns([0.5, 2, 2, 2, 0.5])
+            all_cols = [c1, c2, c3]
+        elif num_products == 2:
+            _, c1, c2, _ = st.columns([1, 2, 2, 1])
+            all_cols = [c1, c2]
+        else:
+            _, c1, _ = st.columns([2, 2, 2])
+            all_cols = [c1]
+
+        top4 = top3
     else:
         best_laptop = filtered_deals[filtered_deals["Category"] == "laptop"].nlargest(1, "Savings %")
         best_phone  = filtered_deals[filtered_deals["Category"] == "phone"].nlargest(1, "Savings %")

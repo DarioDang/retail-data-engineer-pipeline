@@ -598,7 +598,6 @@ if selected_category != "All":
     ]
 
 # ── STEP 5: Average Price Over Time ───────────────────────────────────────────
-# ── STEP 5: Average Price Over Time ───────────────────────────────────────────
 df_time = run_query(AVG_PRICE_OVER_TIME)
 df_time["snapshot_date"] = pd.to_datetime(df_time["snapshot_date"]).dt.date
 
@@ -672,10 +671,35 @@ if len(df_time["snapshot_date"].unique()) > 1:
         </style>
     """, unsafe_allow_html=True)
 
-    title_col, _, from_col, to_col = st.columns([4, 0.5, 1.2, 1.2])
+    title_col, _, from_col, to_col = st.columns([4, 0.5, 1.2, 1.2], vertical_alignment="center") 
+
+    st.markdown("""
+        <style>
+            div[data-testid="stSelectbox"] label p {
+                text-align: center !important;
+            }
+            div[data-testid="stSelectbox"] [data-baseweb="select"] div {
+                text-align: center !important;
+                justify-content: center !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
     with title_col:
-        st.subheader("AVERAGE PRICE OVER TIME")
+        st.markdown("""
+            <div style='
+                padding: 8px 0;
+                text-align: right;
+                margin-left: 20px;
+            '>
+                <span style='
+                    font-size: 25px;
+                    font-weight: 800;
+                    letter-spacing: 2px;
+                    color: #59BA87;
+                '>AVERAGE PRICE OVER TIME</span>
+            </div>
+        """, unsafe_allow_html=True)
 
     with from_col:
         start_label = st.selectbox(
@@ -849,7 +873,20 @@ else:
 st.divider()
 
 # ── STEP 6: Price Range Box Plot ───────────────────────────────────────────────
-st.subheader("PRICE RANGE BY PRODUCT")
+st.markdown("""
+    <div style='
+        padding: 8px 0;
+        text-align: center;
+    '>
+        <span style='
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #489C53;
+        '>PRICE RANGE BY PRODUCT</span>
+    </div>
+""", unsafe_allow_html=True)
+
 fig = px.box(
     df_range, x="product_name", y="price", color="category",
     color_discrete_map=CATEGORY_COLORS,
@@ -864,7 +901,19 @@ st.plotly_chart(fig, use_container_width=True)
 st.divider()
 
 # ── STEP 7: Price Statistics Insight Cards ─────────────────────────────────────
-st.subheader("PRICE STATISTICS PER PRODUCT")
+st.markdown("""
+    <div style='
+        padding: 8px 0;
+        text-align: center;
+    '>
+        <span style='
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #4F8C6C;
+        '>PRICE STATISTICS PER PRODUCT</span>
+    </div>
+""", unsafe_allow_html=True)
 
 # ── Fetch time-aware data ──────────────────────────────────────────────────────
 df_yesterday = run_query(PRICE_CHANGE_VS_YESTERDAY)

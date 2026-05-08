@@ -291,7 +291,19 @@ with col3:
 st.divider()
 
 # Category Summary Table
-st.subheader("CATEGORY SUMMARY")
+st.markdown("""
+    <div style='
+        padding: 8px 0;
+        text-align: center;
+    '>
+        <span style='
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #EDB526;
+        '>CATEGORY SUMMARY</span>
+    </div>
+""", unsafe_allow_html=True)
 df_summary = run_query(CATEGORY_SUMMARY)
 df_summary.columns = [
     "Category", "Products", "Sellers",

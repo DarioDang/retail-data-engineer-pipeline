@@ -844,7 +844,7 @@ if len(df_time["snapshot_date"].unique()) > 1:
                 </div>
                 <img src='app/static/{cat_icon}' width='18' height='18'
                     style='vertical-align:middle;'/>
-                <span style='color:{cat_color}; font-size:11px; font-weight:800;
+                <span style='color:{cat_color}; font-size:13px; font-weight:800;
                     letter-spacing:3px; text-transform:uppercase;'>
                     {cat_label} CATEGORY
                 </span>

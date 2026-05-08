@@ -68,20 +68,49 @@ st.markdown(f"""
 # Add sidebar
 render_sidebar()
 
-st.markdown(
-    """
-    <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-    ">
-        <img src="app/static/overview.png" width="42">
-        <h1 style="margin: 0;">OVERVIEW DASHBOARD</h1>
+
+st.markdown("""
+    <style>
+        @keyframes gradientFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes iconPulse {
+            0%,100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,107,107,0)); }
+            50%      { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(255,107,107,0.6)); }
+        }
+        .page-title-text {
+            background: linear-gradient(
+                270deg,
+                #FF6B6B,
+                #f7971e,
+                #fddb92,
+                #38ef7d,
+                #667eea,
+                #f953c6,
+                #FF6B6B
+            );
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 4s ease infinite;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+        .page-title-icon {
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+    </style>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:14px; padding: 8px 0;">
+        <img src="app/static/overview.png" width="42" class="page-title-icon"/>
+        <h1 class="page-title-text">OVERVIEW DASHBOARD</h1>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
 st.markdown("""
     <style>

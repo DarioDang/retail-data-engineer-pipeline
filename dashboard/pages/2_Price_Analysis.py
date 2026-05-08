@@ -63,9 +63,45 @@ hide_streamlit_ui()
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("""
-    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-        <img src="app/static/price-analysis.png" width="42">
-        <h1 style="margin: 0;">PRICE ANALYSIS</h1>
+    <style>
+        @keyframes gradientFlow {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes iconPulse {
+            0%,100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,107,107,0)); }
+            50%      { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(255,107,107,0.6)); }
+        }
+        .page-title-text {
+            background: linear-gradient(
+                270deg,
+                #FF6B6B,
+                #f7971e,
+                #fddb92,
+                #38ef7d,
+                #667eea,
+                #f953c6,
+                #FF6B6B
+            );
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 4s ease infinite;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+        .page-title-icon {
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+    </style>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:14px; padding: 8px 0;">
+        <img src="app/static/price-analysis.png" width="42" class="page-title-icon"/>
+        <h1 class="page-title-text">PRICE ANALYSIS</h1>
     </div>
 """, unsafe_allow_html=True)
 
@@ -562,7 +598,7 @@ if selected_category != "All":
     ]
 
 # ── STEP 5: Average Price Over Time ───────────────────────────────────────────
-st.subheader("AVERAGE PRICE OVER TIME")
+# ── STEP 5: Average Price Over Time ───────────────────────────────────────────
 df_time = run_query(AVG_PRICE_OVER_TIME)
 df_time["snapshot_date"] = pd.to_datetime(df_time["snapshot_date"]).dt.date
 
@@ -574,182 +610,120 @@ if len(df_time["snapshot_date"].unique()) > 1:
     all_dates  = sorted(df_time["snapshot_date"].unique())
     total_days = len(all_dates)
 
-    default_start = all_dates[-min(7, total_days)]
-    default_end   = all_dates[-1]
+    default_start     = all_dates[-min(7, total_days)]
+    default_end       = all_dates[-1]
+    date_options      = {d.strftime("%d %b %Y"): d for d in all_dates}
+    date_labels       = list(date_options.keys())
+    default_start_idx = max(0, len(all_dates) - 7)
+    default_end_idx   = len(all_dates) - 1
 
-    # ── Slider theme ───────────────────────────────────────────────────────────
+    # ── Title row + inline filter ──────────────────────────────────────────────
     st.markdown("""
         <style>
-            /* Label */
-            div[data-testid="stSlider"] label p {
-                color: rgba(255,255,255,0.5) !important;
-                font-size: 10px !important;
+            div[data-testid="stSelectbox"] {
+                background: rgba(255,255,255,0.03) !important;
+                border-radius: 8px !important;
+                border: 1px solid rgba(255,107,107,0.2) !important;
+                padding: 0 !important;
+            }
+            div[data-testid="stSelectbox"]:hover {
+                border-color: rgba(255,107,107,0.5) !important;
+            }
+            div[data-testid="stSelectbox"] label p {
+                color: rgba(255,255,255,0.35) !important;
+                font-size: 9px !important;
                 font-weight: 700 !important;
                 letter-spacing: 2px !important;
                 text-transform: uppercase !important;
+                margin-bottom: 0 !important;
             }
-            /* Track background */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[class*="Track"] {
-                background: rgba(255,255,255,0.08) !important;
-                height: 4px !important;
-                border-radius: 4px !important;
+            div[data-testid="stSelectbox"] [data-baseweb="select"] div {
+                background: transparent !important;
+                color: #FF6B6B !important;
+                font-weight: 600 !important;
+                font-size: 11px !important;
+                border: none !important;
+                box-shadow: none !important;
+                min-height: 26px !important;
+                padding: 0 4px !important;
             }
-            /* Active fill */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="progressbar"] {
-                background: linear-gradient(90deg, #FF6B6B, #f7971e) !important;
-                height: 4px !important;
-                border-radius: 4px !important;
+            div[data-testid="stSelectbox"] svg {
+                fill: #FF6B6B !important;
+                width: 12px !important;
+                height: 12px !important;
             }
-            /* Handles */
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"] {
-                background: #FF6B6B !important;
-                border: 2.5px solid white !important;
-                width: 18px !important;
-                height: 18px !important;
-                box-shadow: 0 0 10px rgba(255,107,107,0.7) !important;
-                transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+            [data-baseweb="popover"] ul {
+                background: #1a1d2e !important;
+                border: 1px solid rgba(255,107,107,0.2) !important;
+                border-radius: 10px !important;
+                padding: 4px !important;
             }
-            div[data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"]:hover {
-                transform: scale(1.2) !important;
-                box-shadow: 0 0 18px rgba(255,107,107,1) !important;
+            [data-baseweb="popover"] li {
+                color: rgba(255,255,255,0.7) !important;
+                font-size: 11px !important;
+                background: transparent !important;
+                border-radius: 6px !important;
+                padding: 6px 10px !important;
             }
-            /* Tick labels */
-            div[data-testid="stSlider"] [data-baseweb="slider"] [data-testid="stTickBarItem"] {
-                color: rgba(255,255,255,0.3) !important;
-                font-size: 9px !important;
+            [data-baseweb="popover"] li:hover {
+                background: rgba(255,107,107,0.15) !important;
+                color: #FF6B6B !important;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    # ── Slider ─────────────────────────────────────────────────────────────────
-    slider_col, _ = st.columns([1, 3])
-    with slider_col:
+    title_col, _, from_col, to_col = st.columns([4, 0.5, 1.2, 1.2])
 
-        # ── Style selectboxes ──────────────────────────────────────────────────
-        st.markdown("""
-            <style>
-                /* Container */
-                div[data-testid="stSelectbox"] {
-                    background: rgba(255,255,255,0.03) !important;
-                    border-radius: 8px !important;
-                    border: 1px solid rgba(255,107,107,0.25) !important;
-                    padding: 0px 2px !important;
-                    transition: border-color 0.2s ease !important;
-                }
-                div[data-testid="stSelectbox"]:hover {
-                    border-color: rgba(255,107,107,0.6) !important;
-                }
-                /* Label */
-                div[data-testid="stSelectbox"] label p {
-                    color: rgba(255,255,255,0.4) !important;
-                    font-size: 9px !important;
-                    font-weight: 700 !important;
-                    letter-spacing: 2px !important;
-                    text-transform: uppercase !important;
-                    margin-bottom: 0px !important;
-                }
-                /* Selected value — show full text, smaller font */
-                div[data-testid="stSelectbox"] [data-baseweb="select"] div {
-                    background: transparent !important;
-                    color: #FF6B6B !important;
-                    font-weight: 600 !important;
-                    font-size: 11px !important;
-                    border: none !important;
-                    box-shadow: none !important;
-                    white-space: nowrap !important;
-                    overflow: visible !important;
-                    text-overflow: unset !important;
-                    min-height: 28px !important;
-                    padding: 2px 4px !important;
-                }
-                /* Dropdown arrow */
-                div[data-testid="stSelectbox"] svg {
-                    fill: #FF6B6B !important;
-                    width: 14px !important;
-                    height: 14px !important;
-                }
-                /* Dropdown menu */
-                [data-baseweb="popover"] ul {
-                    background: #1a1d2e !important;
-                    border: 1px solid rgba(255,107,107,0.2) !important;
-                    border-radius: 10px !important;
-                    padding: 4px !important;
-                }
-                /* Options */
-                [data-baseweb="popover"] li {
-                    color: rgba(255,255,255,0.7) !important;
-                    font-size: 11px !important;
-                    background: transparent !important;
-                    border-radius: 6px !important;
-                    padding: 6px 10px !important;
-                }
-                [data-baseweb="popover"] li:hover {
-                    background: rgba(255,107,107,0.15) !important;
-                    color: #FF6B6B !important;
-                }
-            </style>
-        """, unsafe_allow_html=True)
+    with title_col:
+        st.subheader("AVERAGE PRICE OVER TIME")
 
-        # ── Header ─────────────────────────────────────────────────────────────
-        st.markdown("""
-            <div style='display:flex; align-items:center; gap:8px; margin-bottom:6px;'>
-                <div style='width:3px; height:14px;
-                    background:linear-gradient(180deg,#FF6B6B,#f7971e);
-                    border-radius:2px;'></div>
-                <span style='color:rgba(255,255,255,0.4); font-size:9px;
-                    font-weight:700; letter-spacing:2px;
-                    text-transform:uppercase;'>Date Range</span>
-            </div>
-        """, unsafe_allow_html=True)
+    with from_col:
+        start_label = st.selectbox(
+            "FROM", options=date_labels,
+            index=default_start_idx, key="date_start"
+        )
 
-        # ── Selectboxes ────────────────────────────────────────────────────────
-        date_options      = {d.strftime("%d %b %Y"): d for d in all_dates}
-        date_labels       = list(date_options.keys())
-        default_start_idx = max(0, len(all_dates) - 7)
-        default_end_idx   = len(all_dates) - 1
+    with to_col:
+        end_label = st.selectbox(
+            "TO", options=date_labels,
+            index=default_end_idx, key="date_end"
+        )
 
-        from_col, to_col = st.columns(2)
-        with from_col:
-            start_label = st.selectbox(
-                "FROM",
-                options=date_labels,
-                index=default_start_idx,
-                key="date_start"
-            )
-        with to_col:
-            end_label = st.selectbox(
-                "TO",
-                options=date_labels,
-                index=default_end_idx,
-                key="date_end"
-            )
+    selected_start = date_options[start_label]
+    selected_end   = date_options[end_label]
 
-        selected_start = date_options[start_label]
-        selected_end   = date_options[end_label]
-
-    # ── Filter ─────────────────────────────────────────────────────────────────
+    # ── Filter by date ─────────────────────────────────────────────────────────
     df_time_filtered = df_time[
         (df_time["snapshot_date"] >= selected_start) &
         (df_time["snapshot_date"] <= selected_end)
     ]
 
-    # ── Charts ─────────────────────────────────────────────────────────────────
-    col1, col2 = st.columns(2)
+    # ── Group products by category ─────────────────────────────────────────────
+    category_order  = ["laptop", "phone", "camera"]
+    category_labels = {
+        "laptop": "LAPTOP",
+        "phone":  "PHONE",
+        "camera": "CAMERA"
+    }
+    category_icons = {
+        "laptop": "laptop-cat-icon.png",
+        "phone":  "mobile-cat-icon.png",
+        "camera": "camera-cat-icon.png"
+    }
 
-    for i, product in enumerate(products):
+    def render_product_chart(product, df_time_filtered):
         df_product = df_time_filtered[
             df_time_filtered["product_name"] == product
         ].copy()
 
         if df_product.empty:
-            continue
+            return False
 
         df_product["snapshot_date"] = df_product["snapshot_date"].astype(str)
         category   = df_product["category"].iloc[0]
         line_color = CATEGORY_COLORS.get(category, "#FF6B6B")
         icon_path  = PRODUCT_ICONS.get(product, "")
 
-        # ── Price change badge ─────────────────────────────────────────────────
         if len(df_product) >= 2:
             first_price  = df_product["avg_price"].iloc[0]
             last_price   = df_product["avg_price"].iloc[-1]
@@ -761,7 +735,6 @@ if len(df_time["snapshot_date"].unique()) > 1:
             change_text  = "–"
             change_color = "gray"
 
-        # ── Y-axis zoom ────────────────────────────────────────────────────────
         y_min     = df_product["avg_price"].min()
         y_max     = df_product["avg_price"].max()
         y_padding = (y_max - y_min) * 0.15 if y_max != y_min else y_max * 0.05
@@ -772,60 +745,97 @@ if len(df_time["snapshot_date"].unique()) > 1:
             markers=True, title="",
             labels={"snapshot_date": "Date", "avg_price": "Avg Price (NZD)"}
         )
-
         fig.update_layout(
             xaxis=dict(
-                type="category",
-                tickangle=-45,
-                tickmode="array",
+                type="category", tickangle=-45, tickmode="array",
                 tickvals=df_product["snapshot_date"].tolist(),
                 tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
                 gridcolor="rgba(255,255,255,0.03)",
                 range=[-0.5, len(df_product) - 0.5],
             ),
             yaxis=dict(
-                range=y_range,
-                tickprefix="$",
+                range=y_range, tickprefix="$",
                 tickfont=dict(size=10, color="rgba(255,255,255,0.5)"),
                 gridcolor="rgba(255,255,255,0.05)",
             ),
-            showlegend=False,
-            height=300,
+            showlegend=False, height=300,
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=10, b=10, l=10, r=10),
         )
-
         r, g, b = int(line_color[1:3], 16), int(line_color[3:5], 16), int(line_color[5:7], 16)
-
         fig.update_traces(
-            line_color=line_color,
-            line_width=2.5,
+            line_color=line_color, line_width=2.5,
             marker=dict(size=8, color=line_color, line=dict(width=2, color="white")),
             fill="tozeroy",
             fillcolor=f"rgba({r},{g},{b},0.08)",
         )
-
         custom_title = f"""
-            <div style='text-align: center; margin-top: 16px; margin-bottom: 4px;
-                padding: 8px 12px; display: flex; align-items: center;
-                justify-content: center; gap: 8px;'>
-                <img src='{icon_path}' width='24' style='vertical-align: middle;'/>
-                <span style='color: white; font-size: 14px; font-weight: 600;'>{product}</span>
-                <span style='color: {change_color}; font-size: 12px; font-weight: 700;
-                    background: rgba(0,0,0,0.3); padding: 2px 8px;
-                    border-radius: 8px;'>{change_text}</span>
+            <div style='text-align:center; margin-top:16px; margin-bottom:4px;
+                padding:8px 12px; display:flex; align-items:center;
+                justify-content:center; gap:8px;'>
+                <img src='{icon_path}' width='24' style='vertical-align:middle;'/>
+                <span style='color:white; font-size:14px; font-weight:600;'>{product}</span>
+                <span style='color:{change_color}; font-size:12px; font-weight:700;
+                    background:rgba(0,0,0,0.3); padding:2px 8px;
+                    border-radius:8px;'>{change_text}</span>
             </div>
         """
+        st.markdown(custom_title, unsafe_allow_html=True)
+        st.plotly_chart(fig, use_container_width=True)
+        return True
 
-        if i % 2 == 0:
-            with col1:
-                st.markdown(custom_title, unsafe_allow_html=True)
-                st.plotly_chart(fig, use_container_width=True)
-        else:
-            with col2:
-                st.markdown(custom_title, unsafe_allow_html=True)
-                st.plotly_chart(fig, use_container_width=True)
+    # ── Render by category groups ──────────────────────────────────────────────
+    categories_to_show = (
+        [selected_category] if selected_category != "All"
+        else category_order
+    )
+
+    for cat in categories_to_show:
+        cat_products = [
+            p for p in products
+            if not df_time_filtered[df_time_filtered["product_name"] == p].empty
+            and df_time_filtered[
+                df_time_filtered["product_name"] == p
+            ]["category"].values[0] == cat
+        ]
+
+        if not cat_products:
+            continue
+
+        cat_color = CATEGORY_COLORS.get(cat, "#FF6B6B")
+        cat_icon  = category_icons.get(cat, "all-icon.png")
+        cat_label = category_labels.get(cat, cat.upper())
+
+        st.markdown(f"""
+            <div style='
+                display:flex; align-items:center; justify-content:center;
+                gap:10px; margin:24px 0 8px 0; padding:8px 16px;
+                background:rgba(255,255,255,0.03); border-radius:8px;
+                border-left:3px solid {cat_color};
+                border-right:3px solid {cat_color};
+            '>
+                <div style='flex:1; height:1px;
+                    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08));'>
+                </div>
+                <img src='app/static/{cat_icon}' width='18' height='18'
+                    style='vertical-align:middle;'/>
+                <span style='color:{cat_color}; font-size:11px; font-weight:800;
+                    letter-spacing:3px; text-transform:uppercase;'>
+                    {cat_label} CATEGORY
+                </span>
+                <div style='flex:1; height:1px;
+                    background:linear-gradient(90deg,rgba(255,255,255,0.08),transparent);'>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        for row_start in range(0, len(cat_products), 3):
+            row_products = cat_products[row_start:row_start + 3]
+            cols = st.columns(len(row_products))
+            for col, product in zip(cols, row_products):
+                with col:
+                    render_product_chart(product, df_time_filtered)
 
 else:
     st.info("⏳ Time series will populate after multiple daily pipeline runs.")

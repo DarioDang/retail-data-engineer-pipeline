@@ -1,6 +1,7 @@
 {{
     config(
         materialized='table',
+    )
 }}
 
 -- Dimension: unique sellers/stores

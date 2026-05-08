@@ -1,9 +1,6 @@
 {{
     config(
         materialized='table',
-        -- When ready to switch: change to 'incremental'
-        -- unique_key='record_id',
-        -- incremental_strategy='merge'
     )
 }}
 

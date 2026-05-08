@@ -219,8 +219,8 @@ st.markdown("""
     </p>
     <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             Data is collected daily via SerpAPI and loaded into AWS S3 as a data lake using 
-            dlt (data load tool). From there, data is loaded into a PostgreSQL warehouse, 
-            transformed using dbt and orchestrated end-to-end with Kestra.
+            dlt (data load tool) daily at 8pm NZT. From there, data is loaded into a PostgreSQL warehouse, 
+            transformed using dbt and orchestrated end-to-end with Prefect Cloud.
     </p>
     <p style='color: gray; text-align: justify; line-height: 1.8; font-size: 14px;'>
             The goal of this project is to provide actionable price intelligence which  helping 

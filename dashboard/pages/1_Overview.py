@@ -325,12 +325,20 @@ CATEGORY_COLORS = {
 
 with col1:
     st.markdown("""
-        <p style='color: white; font-size: 14px; font-weight: 700;
-        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
-        padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);
-        text-align: center;'>
-        AVERAGE PRICE BY CATEGORIES</p>
+        <div style='
+            padding: 8px 0;
+            text-align: center;
+        '>
+            <span style='
+                font-size: 14px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                color: #F5F73E;
+                text-align: center;
+            '>AVERAGE PRICE BY CATEGORIES</span>
+        </div>
     """, unsafe_allow_html=True)
+    
     # Average price by category bar chart
     fig = px.bar(
         df_summary,
@@ -355,11 +363,18 @@ with col1:
 
 with col2:
     st.markdown("""
-        <p style='color: white; font-size: 14px; font-weight: 700;
-        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
-        padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);
-        text-align: center;'>
-        Listings Distribution</p>
+        <div style='
+            padding: 8px 0;
+            text-align: center;
+        '>
+            <span style='
+                font-size: 14px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                color: #F5F73E;
+                text-align: center;
+            '>LISTINGS DISTRIBUTION</span>
+        </div>
     """, unsafe_allow_html=True)
 
     # Spacer 
@@ -521,7 +536,7 @@ fig.update_layout(
         text=f"AVERAGE PRICE TREND BY CATEGORY — {view_label.upper()} VIEW",
         x=0.5,
         xanchor="center",
-        font=dict(size=14, color="white")
+        font=dict(size=14, color="#F5F73E")
     ),
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",

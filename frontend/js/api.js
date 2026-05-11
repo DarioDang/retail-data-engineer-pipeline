@@ -18,15 +18,51 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
       - Caller always checks: if (data) return;
 ────────────────────────────────────────────────────────────── */
 
+/* ── Loading overlay controller ── */
+let _loadingTimer = null;
+let _requestCount = 0;
+
+function showLoadingOverlay() {
+    _requestCount++;
+    /* Only show overlay if API takes more than 2 seconds */
+    if (!_loadingTimer) {
+        _loadingTimer = setTimeout(() => {
+            const overlay = document.getElementById('api-loading-overlay');
+            if (overlay) overlay.style.display = 'flex';
+        }, 2000);
+    }
+}
+
+function hideLoadingOverlay() {
+    _requestCount = Math.max(0, _requestCount - 1);
+    if (_requestCount === 0) {
+        clearTimeout(_loadingTimer);
+        _loadingTimer = null;
+        const overlay = document.getElementById('api-loading-overlay');
+        if (overlay) {
+            overlay.classList.add('hiding');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.classList.remove('hiding');
+            }, 500);
+        }
+    }
+}
+
+/* ── API fetch with loading overlay ── */
 async function apiFetch(endpoint) {
-     try {
-        const res = await fetch(`${API_BASE}${endpoint}`);
+    const url = `${API_BASE}${endpoint}`;
+    showLoadingOverlay();
+    try {
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status} on ${endpoint}`);
         return await res.json();
-     } catch (err) {
+    } catch (err) {
         console.error(`[API] failed: ${endpoint}`, err);
         return null;
-     }
+    } finally {
+        hideLoadingOverlay();
+    }
 }
 
 /* ════════════════════════════════════════════════════════════

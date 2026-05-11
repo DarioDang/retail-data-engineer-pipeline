@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel = "icon" href="static/retail-headpage.png" type="image/png"/>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        /* ── Page-specific styles (Home only) ── */
+
+        /* Animated gradient title underline */
+        .section-title-wrapper {
+            text-align: center;
+            margin: 20px 0 24px 0;
+            animation: fadeInDown 0.8s ease forwards;
+        }
+
+        .section-title-badge {
+            display: inline-block;
+            background: rgba(255,107,107,0.1);
+            border: 1px solid rgba(255,107,107,0.3);
+            border-radius: 20px;
+            padding: 4px 14px;
+            color: #FF6B6B;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .section-title-main {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .section-title-underline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0 12px 0;
+        }
+
+        .underline-bar {
+            height: 2px;
+            width: 60px;
+            background: linear-gradient(90deg, transparent, #FF6B6B);
+            border-radius: 2px;
+            animation: expandLine 1s ease forwards;
+        }
+
+        .underline-bar-right {
+            background: linear-gradient(90deg, #FF6B6B, transparent);
+        }
+
+        .underline-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #FF6B6B;
+        }
+
+        /* About section */
+        .about-border {
+            border-left: 3px solid #FF6B6B;
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
+ 
+        .about-label {
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+ 
+        .about-text {
+            color: gray;
+            text-align: justify;
+            line-height: 1.8;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+ 
+        /* Pipeline section */
+        .pipeline-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+ 
+        .pipeline-title h2 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            margin: 0;
+            text-transform: uppercase;
+        }
+ 
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            margin: 24px auto;
+            padding: 20px 0;
+            max-width: 2000px;
+        }
+
+        .pipeline-step {
+            text-align: center;
+            padding: 10px 40px;
+        }
+
+        .pipeline-step img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .pipeline-step p {
+            color: gray;
+            margin-top: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .pipeline-step p b {
+            display: block;
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .pipeline-arrow {
+            font-size: 28px;
+            color: #FF6B6B;
+            animation: moveArrow 1.2s ease-in-out infinite;
+            padding: 0 20px;
+            margin-bottom: 24px;
+        }
+ 
+        /* Stats bar */
+        .stats-bar {
+            text-align: center;
+            color: gray;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+ 
+        .stats-bar img {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+ 
+        .stats-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <aside class = "sidebar" id="sidebar">
+        <div class = "sidebar-brand">
+            <p>DASHBOARD CATEGORY</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item active">
+                <img src="static/home-icon.png" alt="Home"/>
+                Home
+            </a>
+            <a href="overview.html" class="nav-item">
+                <img src="static/overview.png" alt="Overview"/>
+                Overview
+            </a>
+            <a href="price.html" class="nav-item">
+                <img src="static/price-analysis.png" alt="Price Analysis"/>
+                Price Analysis
+            </a>
+            <a href="seller.html" class="nav-item">
+                <img src="static/seller-intelligence.png" alt="Seller Intelligence"/>
+                Seller Intelligence
+            </a>
+        </nav>
+
+        <div class="last-updated-wrap" id="last-updated-wrap">
+            <p class="last-updated-label">Last Updated</p>
+            <div class="last-updated-row">
+                <div class="status-dot" id="status-dot" style="background:#444;"></div>
+                <span class="last-updated-date" id="last-updated-date">—</span>
+                <span class="last-updated-age" id="last-updated-age"></span>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class = "footer-profile-row">
+                <div class="footer-avatar">DD</div>
+                <div>
+                    <p class="footer-name">Dario Dang</p>
+                    <p class="footer-title">Data Analyst</p>
+                </div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-links">
+                <a class ="footer-link github" href="https://github.com/DarioDang" target="_blank">
+                   <span class="footer-link-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#e6edf3">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                    </span>
+                    <span class="footer-link-text">GitHub</span> 
+                </a>
+                <a class="footer-link linkedin" href="https://www.linkedin.com/in/dario-dang-89049020a/" target="_blank">
+                    <span class="footer-link-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </span>
+                    <span class="footer-link-text">LinkedIn</span>
+                </a>
+                <a class="footer-link portfolio" href="https://dariodang.github.io/" target="_blank">
+                    <span class="footer-link-icon">
+                        <img src="static/portfolio-sidebar-icon.png" width="14" height="14" style="vertical-align:middle;"/>
+                    </span>
+                    <span class="footer-link-text">Portfolio</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+ 
+    <!-- ── MOBILE TOGGLE ───────────────────────────────────── -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+ 
+    <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+    <main class="main-content">
+ 
+        <!-- Header -->
+        <div class="section-title-wrapper">
+            <h2 class="section-title-main">RETAIL PRICE DASHBOARD</h2>
+            <div class="section-title-underline">
+                <div class="underline-bar"></div>
+                <div class="underline-dot"></div>
+                <div class="underline-bar underline-bar-right"></div>
+            </div>
+            <p style="color: gray; font-size: 16px; text-align: center;">
+                Monitor and analyze product prices across retailers in New Zealand
+            </p>
+            <br/>
+            <div class="stats-bar">
+                <span class="stats-item">
+                    <img src="static/google-shopping.png" alt=""/> Google Shopping
+                </span>
+                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-item">
+                    <img src="static/products.png" alt=""/> 8 Products
+                </span>
+                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-item">
+                    <img src="static/daily-update.png" alt=""/> Daily Updates
+                </span>
+                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-item">
+                    <img src="static/new-zealand-flag.png" alt=""/> New Zealand
+                </span>
+            </div>
+        </div>
+ 
+        <hr class="divider"/>
+ 
+        <!-- About Section -->
+        <div class="about-border">
+            <p class="about-label">About This Dashboard</p>
+        </div>
+ 
+        <p class="about-text">
+            This dashboard tracks and analyzes real-time product prices from Google Shopping
+            across 8 popular consumer electronics in New Zealand, covering laptops, smartphones,
+            and action cameras from leading brands like Apple, Samsung, Dell, HP, GoPro, and DJI.
+        </p>
+        <p class="about-text">
+            Built as an end-to-end data engineering portfolio project, the pipeline is designed
+            to demonstrate modern data engineering practices including data ingestion,
+            transformation, storage, orchestration, and visualization, all running on
+            a fully automated daily schedule.
+        </p>
+        <p class="about-text">
+            Data is collected daily via SerpAPI and loaded into AWS S3 as a data lake using
+            dlt (data load tool) daily at 8pm NZT. From there, data is loaded into a PostgreSQL
+            warehouse, transformed using dbt and orchestrated end-to-end with Prefect Cloud.
+        </p>
+        <p class="about-text">
+            The goal of this project is to provide actionable price intelligence — helping
+            consumers identify the cheapest sellers, track price trends over time, monitor
+            discount patterns, and understand seller competition across the New Zealand
+            electronics market.
+        </p>
+        <p class="about-text">
+            This dashboard was created as part of the Data Engineering Zoomcamp 2026 cohort,
+            demonstrating skills across the full data engineering stack from raw API
+            ingestion through to an interactive analytics dashboard.
+        </p>
+ 
+        <hr class="divider"/>
+ 
+        <!-- Navigation Guide -->
+        <div style="text-align:center; margin-bottom: 24px;">
+            <span style="
+                background: linear-gradient(90deg, #FF6B6B, #f7971e);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-size: 9px;
+                font-weight: 800;
+                letter-spacing: 4px;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 8px;
+            ">NAVIGATION GUIDE</span>
+            <p style="
+                background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
+                background-size: 300% 300%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: gradientShift 4s ease infinite;
+                font-size: 30px;
+                font-weight: 800;
+                margin: 0 0 8px 0;
+                letter-spacing: 0.5px;
+                text-align: center;
+            ">How It Works</p>
+            <p style="color: rgba(255,255,255,0.4); font-size: 15px; margin: 0;">
+                Simply navigate to the section of your choice using the sidebar.
+            </p>
+        </div>
+ 
+        <!-- How it works cards -->
+        <div class="grid-3">
+            <div class="how-card-wrapper">
+                <div class="how-card-inner">
+                    <div class="how-card-title">
+                        <img src="static/overview.png" width="30" alt="Overview"/>
+                        Overview
+                    </div>
+                    <p class="how-card-desc">Get a high-level summary of all products and sellers.</p>
+                    <div class="how-card-divider"></div>
+                    <p class="how-card-find">WHAT YOU'LL FIND</p>
+                    <ul class="how-card-list">
+                        <li>Total listings, products and sellers</li>
+                        <li>Listings by category</li>
+                        <li>Top sellers by listings</li>
+                        <li>Category summary table</li>
+                    </ul>
+                </div>
+            </div>
+ 
+            <div class="how-card-wrapper" style="animation-delay: 0.5s;">
+                <div class="how-card-inner">
+                    <div class="how-card-title">
+                        <img src="static/price-analysis.png" width="30" alt="Price Analysis"/>
+                        Price Analysis
+                    </div>
+                    <p class="how-card-desc">Dive deep into price trends and ranges across products.</p>
+                    <div class="how-card-divider"></div>
+                    <p class="how-card-find">WHAT YOU'LL FIND</p>
+                    <ul class="how-card-list">
+                        <li>Average price over time per product</li>
+                        <li>Price range box plots</li>
+                        <li>Price statistics per product</li>
+                        <li>Discounted products</li>
+                    </ul>
+                </div>
+            </div>
+ 
+            <div class="how-card-wrapper" style="animation-delay: 1s;">
+                <div class="how-card-inner">
+                    <div class="how-card-title">
+                        <img src="static/seller-intelligence.png" width="30" alt="Seller Intelligence"/>
+                        Seller Intelligence
+                    </div>
+                    <p class="how-card-desc">Analyze seller competition, ratings and more.</p>
+                    <div class="how-card-divider"></div>
+                    <p class="how-card-find">WHAT YOU'LL FIND</p>
+                    <ul class="how-card-list">
+                        <li>Seller count per product</li>
+                        <li>Cheapest seller per product</li>
+                        <li>Average rating by seller</li>
+                        <li>Rating status distribution</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+ 
+        <hr class="divider"/>
+ 
+        <!-- Data Pipeline -->
+        <div class="pipeline-title">
+            <img src="static/data-pipeline.png" width="35" alt="Pipeline"/>
+            <h2>DATA PIPELINE</h2>
+        </div>
+ 
+        <div class="pipeline-flow">
+            <div class="pipeline-step">
+                <img src="static/serpapi-icon.png" alt="SerpAPI"/>
+                <p><b>SerpAPI</b>Google Shopping</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <img src="static/dlt-icon.png" alt="dlt"/>
+                <p><b>dlt</b>Data Loading</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <img src="static/aws-s3-icon.png" alt="AWS S3"/>
+                <p><b>AWS S3</b>Data Lake</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <img src="static/amazon-rds-icon.png" alt="AWS RDS"/>
+                <p><b>AWS RDS</b>Data Warehouse</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <img src="static/dbt-icon.png" alt="dbt"/>
+                <p><b>dbt</b>Transformations</p>
+            </div>
+        </div>
+ 
+        <hr class="divider"/>
+ 
+        <p class="copyright">© 2026 Retail Price Dashboard</p>
+ 
+    </main>
+</div>
+ 
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+</script>
+<script src="js/api.js"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    async function loadLastUpdated() {
+        const data = await getLastUpdated();
+        if (!data || !data[0]?.last_updated) return;
+
+        const dateStr = data[0].last_updated.split('T')[0];
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const updated = new Date(year, month - 1, day);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((today - updated) / (1000 * 60 * 60 * 24));
+
+        let color, ageText;
+        if (diffDays === 0)      { color = '#38ef7d'; ageText = 'Today'; }
+        else if (diffDays === 1) { color = '#f7971e'; ageText = 'Yesterday'; }
+        else                     { color = '#FF6B6B'; ageText = `${diffDays}d ago`; }
+
+        const label = updated.toLocaleDateString('en-NZ', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        const dotEl = document.getElementById('status-dot');
+        dotEl.style.background = color;
+        dotEl.style.setProperty('--pulse-color', color + '66');
+
+        document.getElementById('last-updated-date').textContent = label;
+        document.getElementById('last-updated-date').style.color = color;
+        document.getElementById('last-updated-age').textContent  = ageText;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLastUpdated();
+    });
+</script>
+</body>
+</html>

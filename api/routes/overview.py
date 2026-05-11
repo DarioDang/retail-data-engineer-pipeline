@@ -73,3 +73,10 @@ def listings_by_category():
     Response: [{ "category": "Laptop", "listings": 120 }, ...]
     """
     return _safe_query("overview_listings_by_category", queries.LISTINGS_BY_CATEGORY)
+
+@router.get("/last-updated")
+def last_updated():
+    """
+    Timestamp of the most recent data snapshot
+    Used by the "Last Updated" info box on the sidebar"""
+    return _safe_query("last_updated", queries.LAST_UPDATED)

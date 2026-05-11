@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Seller Intelligence</title>
+    <link rel="icon" href="static/seller-intelligence.png" type="image/png"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        .main-content { padding-top: 1.5rem; overflow-x: hidden; }
+
+        .section-label {
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-top: -12px;
+            margin-bottom: 16px;
+        }
+
+        /* ── Section 1: Seller count + donut ── */
+        .seller-top-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 24px;
+            margin-bottom: 8px;
+            align-items: start;
+        }
+
+        .cat-legend { display: flex; gap: 16px; margin-top: 8px; justify-content: center; }
+        .cat-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .cat-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .cat-legend-item span { color: gray; font-size: 11px; }
+
+        .rating-legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .rating-legend-label { display: flex; align-items: center; gap: 6px; min-width: 80px; }
+        .rating-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .rating-legend-name { color: white; font-size: 11px; font-weight: 600; }
+        .rating-bar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 20px; height: 6px; overflow: hidden; }
+        .rating-bar-fill { height: 100%; border-radius: 20px; opacity: 0.85; }
+        .rating-pct { color: gray; font-size: 11px; text-align: right; min-width: 36px; }
+
+        /* ── Section 2: Scorecard — 3 columns ── */
+        .scorecard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .scorecard-card {
+            background: linear-gradient(135deg, #1a1d2e 0%, #1E2130 60%, #252840 100%);
+            border-radius: 14px;
+            padding: 20px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .scorecard-card:hover { transform: translateY(-4px); }
+
+        .scorecard-accent {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; border-radius: 14px 14px 0 0;
+        }
+
+        .scorecard-shimmer {
+            position: absolute; top: 0; height: 100%; width: 50%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+            pointer-events: none; left: -100%;
+            animation: shimmerCard 3s ease-in-out infinite;
+        }
+
+        .scorecard-header { display: flex; align-items: center; gap: 10px; position: relative; }
+
+        .scorecard-rank {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: #0e1117; flex-shrink: 0;
+        }
+
+        .scorecard-name {
+            color: white; font-size: 14px; font-weight: 700; flex: 1;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .scorecard-trust {
+            border-radius: 20px; padding: 3px 10px; font-size: 10px;
+            font-weight: 800; letter-spacing: 1px; white-space: nowrap; display: inline-block;
+            animation: floatBadge 2.5s ease-in-out infinite;
+        }
+
+        .scorecard-metric { display: flex; flex-direction: column; gap: 4px; }
+        .scorecard-metric-header { display: flex; justify-content: space-between; align-items: center; }
+        .scorecard-metric-label { color: rgba(255,255,255,0.35); font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .scorecard-metric-value { font-size: 11px; font-weight: 700; }
+        .scorecard-bar-track { background: rgba(255,255,255,0.06); border-radius: 20px; height: 4px; overflow: hidden; }
+        .scorecard-bar-fill { height: 100%; border-radius: 20px; background-size: 200% 100%; animation: barFlow 2s linear infinite; }
+
+        .scorecard-insight {
+            font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+            padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;
+        }
+
+        /* ── Section 3: Cheapest seller cards ── */
+        .cheapest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .cheap-card {
+            background: linear-gradient(135deg, #1a1d2e, #1E2130);
+            border-radius: 12px; padding: 16px 18px; margin-bottom: 0;
+            position: relative; overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .cheap-card-scan {
+            position: absolute; left: 0; right: 0; height: 35%;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.025), transparent);
+            pointer-events: none; top: -40%; animation: scanLine 4s linear infinite;
+        }
+
+        .cheap-card-shimmer {
+            position: absolute; top: 0; height: 100%; width: 50%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+            pointer-events: none; left: -100%; animation: shimmerCard 3s ease-in-out infinite;
+        }
+
+        .cheap-card-inner { position: relative; }
+        .cheap-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .cheap-cat-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .cheap-savings { color: #38ef7d; font-size: 11px; font-weight: 700; display: inline-block; animation: savingsPulse 2.5s ease-in-out infinite; }
+        .cheap-product { color: white; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .cheap-price { color: #38ef7d; font-size: 22px; font-weight: 800; display: inline-block; animation: priceGlow 2.5s ease-in-out infinite; margin-bottom: 4px; }
+        .cheap-seller { color: rgba(255,255,255,0.4); font-size: 11px; margin-bottom: 12px; }
+        .cheap-bar-track { background: rgba(255,255,255,0.06); border-radius: 20px; height: 4px; overflow: hidden; }
+        .cheap-bar-fill { height: 100%; border-radius: 20px; background-size: 200% 100%; animation: barFlow2 2s linear infinite; }
+        .cheap-avg { color: rgba(255,255,255,0.25); font-size: 10px; margin-top: 4px; }
+
+        /* Animations */
+        @keyframes scanLine    { 0%{top:-40%;} 100%{top:140%;} }
+        @keyframes shimmerCard { 0%{left:-100%;} 100%{left:200%;} }
+        @keyframes floatBadge  { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-2px);} }
+        @keyframes barFlow     { 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
+        @keyframes barFlow2    { 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
+        @keyframes pulseBar    { 0%,100%{opacity:0.7;} 50%{opacity:1;} }
+        @keyframes priceGlow   { 0%,100%{text-shadow:0 0 0px rgba(56,239,125,0);} 50%{text-shadow:0 0 12px rgba(56,239,125,0.7);} }
+        @keyframes savingsPulse{ 0%,100%{opacity:0.8;} 50%{opacity:1;transform:scale(1.03);} }
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><p>DASHBOARD CATEGORY</p></div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item"><img src="static/home-icon.png" alt=""/> Home</a>
+            <a href="overview.html" class="nav-item"><img src="static/overview.png" alt=""/> Overview</a>
+            <a href="price.html" class="nav-item"><img src="static/price-analysis.png" alt=""/> Price Analysis</a>
+            <a href="seller.html" class="nav-item active"><img src="static/seller-intelligence.png" alt=""/> Seller Intelligence</a>
+        </nav>
+
+        <div class="last-updated-wrap" id="last-updated-wrap">
+            <p class="last-updated-label">Last Updated</p>
+            <div class="last-updated-row">
+                <div class="status-dot" id="status-dot" style="background:#444;"></div>
+                <span class="last-updated-date" id="last-updated-date">—</span>
+                <span class="last-updated-age" id="last-updated-age"></span>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="footer-profile-row">
+                <div class="footer-avatar">DD</div>
+                <div><p class="footer-name">Dario Dang</p><p class="footer-title">Data Analyst</p></div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-links">
+                <a class="footer-link github" href="https://github.com/DarioDang" target="_blank">
+                    <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#e6edf3"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg></span>
+                    <span class="footer-link-text">GitHub</span>
+                </a>
+                <a class="footer-link linkedin" href="https://www.linkedin.com/in/dario-dang-89049020a/" target="_blank">
+                    <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+                    <span class="footer-link-text">LinkedIn</span>
+                </a>
+                <a class="footer-link portfolio" href="https://dariodang.github.io/" target="_blank">
+                    <span class="footer-link-icon"><img src="static/portfolio-sidebar-icon.png" width="14" height="14" style="vertical-align:middle;"/></span>
+                    <span class="footer-link-text">Portfolio</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+    <main class="main-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <img src="static/seller-intelligence.png" alt="" class="page-title-icon"/>
+            <h1 class="page-title-text">SELLER INTELLIGENCE</h1>
+        </div>
+        <p class="page-subtitle">Analyze seller competition, ratings and pricing</p>
+        <hr class="divider"/>
+
+        <!-- Section 1: Seller count bars + Rating donut -->
+        <div class="seller-top-grid">
+            <div>
+                <p class="section-label">Seller Count per Product</p>
+                <div id="seller-bars" style="height:340px;"></div>
+                <div class="cat-legend" id="cat-legend"></div>
+            </div>
+            <div>
+                <p class="section-label">Rating Status Distribution</p>
+                <div id="chart-donut" style="height:260px;"></div>
+                <div id="rating-legend" style="margin-top:12px;"></div>
+            </div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Section 2: Seller Trust Bubble Chart -->
+        <p class="section-label">Market Competition vs Average Price</p>
+        <p class="section-subtitle">Bars = seller count · Red line = avg price (NZD)</p>
+        <div id="chart-bubble" style="height:420px;"></div>
+
+        <hr class="divider"/>
+
+        <!-- Section 3: Seller Reputation Scorecard — 3 columns -->
+        <p class="section-label">Seller Reputation Scorecard</p>
+        <p class="section-subtitle">Top 3 sellers ranked by trust score</p>
+        <div class="scorecard-grid" id="seller-scorecard"></div>
+
+        <hr class="divider"/>
+
+        <!-- Section 4: Cheapest Seller per Category -->
+        <p class="section-label">Best Deal per Category</p>
+        <p class="section-subtitle">Cheapest seller on the latest snapshot date</p>
+        <div class="cheapest-grid" id="cheapest-sellers"></div>
+
+        <hr class="divider"/>
+        <p class="copyright">© 2026 Retail Price Intelligence Dashboard</p>
+
+    </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/seller.js"></script>
+<script>function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }</script>
+</body>
+</html>

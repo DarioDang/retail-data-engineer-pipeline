@@ -1,0 +1,1171 @@
+/* ============================================================
+   RETAIL PRICE INTELLIGENCE DASHBOARD — style.css
+   Phase 2: HTML/CSS/JS frontend
+   All styles consolidated from:
+     - dashboard/utils/sidebar.py
+     - dashboard/utils/styles.py
+     - dashboard/pages/*.py  (st.markdown CSS blocks)
+   ============================================================ */
+
+/* ── 1. RESET & BASE ───────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    overflow-x: hidden;
+}
+
+/* Google Font import */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
+
+
+/* ── 2. BACKGROUND + OVERLAY ──────────────────────────────── */
+/* In Streamlit this was BG_BASE64 embedded into each page.
+   In HTML we use the actual image file from frontend/static/
+   Set this on <body> in each HTML page via a class */
+
+body {
+    background-color: #0e1117;
+    background-image: url('../static/background-1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+
+/* Dark overlay — equivalent to the ::before pseudo-element in Streamlit */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(14, 17, 23, 0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* All direct children of body sit above the overlay */
+body > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ── 3. LAYOUT: SIDEBAR + MAIN ────────────────────────────── */
+.layout {
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.main-content {
+    margin-left: 260px;         /* same width as sidebar */
+    flex: 1;
+    padding: 2rem 2.5rem;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+
+/* ── 4. SIDEBAR ───────────────────────────────────────────── */
+/* Translates the full sidebar.py render_sidebar() function */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: linear-gradient(180deg, #0e1117 0%, #1a1d2e 50%, #1E2130 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+/* Branding header */
+.sidebar-brand {
+    padding: 16px 20px 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 8px;
+}
+
+.sidebar-brand p {
+    color: #FF6B6B;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+/* Nav links */
+.sidebar-nav {
+    padding: 12px 8px;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin: 4px 0;
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    background: rgba(255, 107, 107, 0.08);
+    border-left: 3px solid #FF6B6B;
+    transform: translateX(4px);
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: none;
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(255, 107, 107, 0.15), transparent);
+    border-left: 3px solid #FF6B6B;
+    color: #FF6B6B;
+    animation: sidebarGlow 2s ease-in-out infinite;
+}
+
+.nav-item img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+@keyframes sidebarGlow {
+    0%   { box-shadow: -2px 0 8px rgba(255, 107, 107, 0.2); }
+    50%  { box-shadow: -2px 0 16px rgba(255, 107, 107, 0.5); }
+    100% { box-shadow: -2px 0 8px rgba(255, 107, 107, 0.2); }
+}
+
+
+/* ── 5. SIDEBAR FOOTER ────────────────────────────────────── */
+/* Translates the .sidebar-footer block from sidebar.py */
+
+.sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.footer-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.footer-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B6B, #f7971e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+}
+
+.footer-name {
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.footer-title {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.footer-divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent);
+    margin: 8px 0;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    padding: 7px 4px;
+    border-bottom: none;
+    background: transparent;
+    transition: none;
+}
+
+.footer-link:first-child {
+    border-top: none;
+}
+
+.footer-link:hover,
+.footer-link:focus,
+.footer-link:active,
+.footer-link:visited {
+    background: transparent !important;
+    text-decoration: none;
+    outline: none;
+}
+
+.footer-link-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-link-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.footer-link.github   .footer-link-text { color: #e6edf3; }
+.footer-link.linkedin .footer-link-text { color: #60a5fa; }
+.footer-link.portfolio .footer-link-text { color: #FF6B6B; }
+
+
+/* ── 6. PAGE HEADER (animated gradient title) ─────────────── */
+/* Translates the .page-title-text + .page-title-icon pattern
+   used on every Streamlit page */
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 8px 0 4px 0;
+    margin-bottom: 8px;
+}
+
+.page-title-icon {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    animation: iconPulse 3s ease-in-out infinite;
+}
+
+.page-title-text {
+    background: linear-gradient(
+        270deg,
+        #FF6B6B, #f7971e, #fddb92,
+        #38ef7d, #667eea, #f953c6, #FF6B6B
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientFlow 4s ease infinite;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin: 0;
+    text-align: center;
+}
+
+.page-subtitle {
+    text-align: center;
+    color: gray;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+@keyframes gradientFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes iconPulse {
+    0%,100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0px rgba(255, 107, 107, 0));
+    }
+    50% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.6));
+    }
+}
+
+
+/* ── 7. METRIC CARDS ──────────────────────────────────────── */
+/* Translates the .metric-card CSS from overview.py */
+
+.metric-card {
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin: 8px 0;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.metric-card-blue   { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.metric-card-green  { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+.metric-card-orange { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); }
+.metric-card-red    { background: linear-gradient(135deg, #FF6B6B 0%, #ee0979 100%); }
+.metric-card-teal   { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+.metric-card-pink   { background: linear-gradient(135deg, #f953c6 0%, #b91d73 100%); }
+
+.metric-icon  { font-size: 52px; margin-bottom: 16px; }
+.metric-icon img { width: 52px; height: 52px; object-fit: contain; }
+
+.metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 25px;
+    font-weight: 300;
+    color: white;
+    margin: 0;
+    line-height: 1;
+}
+
+.metric-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 10px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Sparkline wave decorations on metric cards */
+.sparkline-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0.25;
+}
+
+.sparkline-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0.25;
+}
+
+.sparkline-top svg,
+.sparkline-bottom svg {
+    animation: moveWave 3s ease-in-out infinite;
+}
+
+@keyframes moveWave {
+    0%   { transform: translateX(0px); }
+    50%  { transform: translateX(-20px); }
+    100% { transform: translateX(0px); }
+}
+
+
+/* ── 8. GRID LAYOUTS ──────────────────────────────────────── */
+/* Replaces st.columns() throughout all pages */
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.grid-2-1 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.grid-1-4 {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 1024px) {
+    .grid-3, .grid-2, .grid-2-1 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .grid-3, .grid-2, .grid-2-1, .grid-1-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ── 9. SECTION TITLES ────────────────────────────────────── */
+/* Translates the inline section title divs used throughout pages */
+
+.section-title {
+    padding: 8px 0;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.section-title span {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.section-title.yellow span { color: #EDB526; }
+.section-title.green  span { color: #59BA87; }
+.section-title.teal   span { color: #489C53; }
+.section-title.dark-green span { color: #4F8C6C; }
+
+
+/* ── 10. INSIGHT / DEAL CARDS ─────────────────────────────── */
+/* Translates .deal-card and .insight-card from price_analysis.py */
+
+.deal-card {
+    background: linear-gradient(135deg, #1E2130 0%, #252840 100%);
+    border-radius: 10px;
+    padding: 14px 12px;
+    margin: 4px 0;
+    border-left: 3px solid #38ef7d;
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.deal-card:hover { transform: translateY(-4px); }
+
+.deal-rank {
+    color: #38ef7d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.deal-product {
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 4px 0;
+}
+
+.deal-seller { color: gray; font-size: 11px; margin: 0; }
+
+.deal-price {
+    color: #38ef7d;
+    font-size: 16px;
+    font-weight: 800;
+    margin: 4px 0;
+}
+
+.deal-savings {
+    color: #FF6B6B;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.insight-card {
+    background: #1E2130;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 6px 0;
+    border-left: 4px solid #FF6B6B;
+    transition: transform 0.3s ease;
+}
+
+.insight-card:hover { transform: translateX(6px); }
+.insight-title { color: gray; font-size: 12px; letter-spacing: 1px; margin: 0; }
+.insight-value { color: white; font-size: 22px; font-weight: 700; margin: 4px 0; }
+.insight-sub   { color: gray; font-size: 12px; margin: 0; }
+
+
+/* ── 11. BEST DEAL CARDS (sparkline cards) ────────────────── */
+/* Translates .best-deal-card from price_analysis.py */
+
+.best-deal-card {
+    background: linear-gradient(135deg, #1a1d2e 0%, #1E2130 50%, #252840 100%);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 4px 0;
+    border-left: 3px solid #38ef7d;
+    border-bottom: 1px solid rgba(56, 239, 125, 0.15);
+    text-align: center;
+    animation: fadeInUp 0.5s ease forwards;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+}
+
+.best-deal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(56, 239, 125, 0.04), transparent);
+    animation: shimmer 3s infinite;
+}
+
+.best-deal-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(56, 239, 125, 0.15);
+}
+
+.card-rank {
+    color: #38ef7d;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+}
+
+.card-product {
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 3px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-seller { color: #8892a4; font-size: 10px; margin: 2px 0; font-style: italic; }
+
+.card-price {
+    background: linear-gradient(90deg, #38ef7d, #11998e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 15px;
+    font-weight: 800;
+    margin: 4px 0 2px 0;
+    letter-spacing: 0.5px;
+}
+
+.card-savings {
+    color: #FF6B6B;
+    font-size: 10px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(56, 239, 125, 0.3), transparent);
+    margin: 6px 0;
+}
+
+
+/* ── 12. INSIGHT CAROUSEL CARDS (ic-*) ────────────────────── */
+/* Translates the .ic-* carousel from price_analysis.py components.html */
+
+.ic-outer {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    padding: 8px 0 4px 0;
+}
+
+.ic-outer::before,
+.ic-outer::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 20px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.ic-outer::before {
+    left: 0;
+    background: linear-gradient(to right, #0e1117, transparent);
+}
+
+.ic-outer::after {
+    right: 0;
+    background: linear-gradient(to left, #0e1117, transparent);
+}
+
+.ic-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.ic-page {
+    display: flex;
+    flex-shrink: 0;
+    gap: 12px;
+    padding: 0 40px;
+}
+
+.ic-wrap {
+    position: relative;
+    border-radius: 14px;
+    padding: 20px 16px 16px 16px;
+    text-align: center;
+    border: 1px solid var(--ic);
+    background: linear-gradient(160deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    overflow: hidden;
+    animation: fadeSlideUp 0.6s ease both;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: default;
+    flex: 1;
+    height: 170px;
+    min-height: 170px;
+}
+
+.ic-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--ic);
+    border-radius: 14px 14px 0 0;
+}
+
+.ic-title {
+    color: var(--ic);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    margin: 8px 0 10px 0;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+.ic-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 6px 0;
+    letter-spacing: 0.5px;
+    animation: countUp 0.7s ease both;
+}
+
+.ic-sub {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 10px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+}
+
+.ic-progress-wrap {
+    margin-top: 12px;
+    height: 3px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.ic-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--ic);
+    animation: progressGrow 1.2s ease both;
+}
+
+.ic-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.ic-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
+    cursor: pointer;
+}
+
+.ic-dot.active {
+    background: white;
+    width: 18px;
+    border-radius: 99px;
+}
+
+
+/* ── 13. HOME PAGE CARDS (.how-card-*) ────────────────────── */
+/* Translates the navigation guide cards from Home.py */
+
+.how-card-wrapper {
+    padding: 2px;
+    border-radius: 16px;
+    background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
+    background-size: 300% 300%;
+    animation: borderRotate 4s ease infinite, floatCard 4s ease-in-out infinite;
+    margin: 8px 0;
+}
+
+.how-card-inner {
+    background: linear-gradient(135deg, #1a1d2e 0%, #1E2130 60%, #252840 100%);
+    border-radius: 14px;
+    padding: 24px 20px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.how-card-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+    animation: shimmerFlow 3s ease-in-out infinite;
+}
+
+.how-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.how-card-title img { animation: pulseIcon 3s ease-in-out infinite; }
+.how-card-desc { color: gray; text-align: center; font-size: 13px; margin-bottom: 8px; }
+
+.how-card-list {
+    color: #8892a4;
+    font-size: 12px;
+    padding-left: 16px;
+}
+
+.how-card-list li { margin-bottom: 6px; line-height: 1.5; }
+
+.how-card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    margin: 12px 0;
+}
+
+.how-card-find {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+
+/* ── 14. SECTION CARDS (.section-card) ───────────────────── */
+.section-card {
+    background-color: #1E2130;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 10px 0;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.section-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+    background-color: #252840;
+}
+
+
+/* ── 15. PLOTLY CHART CONTAINERS ──────────────────────────── */
+/* Wrappers for Plotly.js charts — replaces st.plotly_chart() */
+
+.chart-container {
+    width: 100%;
+    background: transparent;
+    margin: 8px 0;
+}
+
+.chart-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #F5F73E;
+    text-align: center;
+    padding: 8px 0;
+    text-transform: uppercase;
+}
+
+
+/* ── 16. DIVIDER ──────────────────────────────────────────── */
+/* Replaces st.divider() */
+
+.divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 24px 0;
+    border: none;
+}
+
+
+/* ── 17. CATEGORY FILTER BAR ──────────────────────────────── */
+/* Translates the filter_col category buttons from price_analysis.py */
+
+.filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.filter-item {
+    height: 42px;
+    width: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    gap: 8px;
+}
+
+.filter-item.inactive {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.filter-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+
+/* ── 18. ANIMATIONS (global) ──────────────────────────────── */
+/* All @keyframes collected from every Streamlit page */
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+}
+
+@keyframes shimmerFlow {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes progressGrow {
+    from { width: 0%; }
+    to   { width: var(--pct); }
+}
+
+@keyframes borderRotate {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes floatCard {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes pulseIcon {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes expandLine {
+    from { width: 0%; }
+    to   { width: 60px; }
+}
+
+@keyframes moveArrow {
+    0%   { transform: translateX(0px);  opacity: 0.3; }
+    50%  { transform: translateX(8px);  opacity: 1; }
+    100% { transform: translateX(0px);  opacity: 0.3; }
+}
+
+@keyframes pulseDot {
+    0%   { transform: scale(1);   opacity: 1; }
+    50%  { transform: scale(1.4); opacity: 0.6; }
+    100% { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes floatDot {
+    0%,100% { transform: translateY(0);    opacity: 0.6; }
+    50%      { transform: translateY(-5px); opacity: 1; }
+}
+
+@keyframes scanline {
+    0%   { top: 0%; }
+    100% { top: 100%; }
+}
+
+@keyframes barFlow {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+@keyframes priceGlow {
+    0%,100% { text-shadow: 0 0 0px rgba(56, 239, 125, 0); }
+    50%      { text-shadow: 0 0 12px rgba(56, 239, 125, 0.7); }
+}
+
+@keyframes savingsPulse {
+    0%,100% { opacity: 0.8; }
+    50%      { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes pulseGreen {
+    0%   { box-shadow: 0 0 0 0 rgba(56, 239, 125, 0.4); }
+    70%  { box-shadow: 0 0 0 8px rgba(56, 239, 125, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 239, 125, 0); }
+}
+
+
+/* ── 19. ANIMATED ARROW (pipeline diagram) ────────────────── */
+.animated-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: moveArrow 1.2s ease-in-out infinite;
+    font-size: 28px;
+    color: #FF6B6B;
+}
+
+
+/* ── 20. RATING BARS (seller page) ───────────────────────── */
+.rating-bar-wrap {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    height: 10px;
+    overflow: hidden;
+    flex: 1;
+    margin: 0 10px;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+}
+
+
+/* ── 21. COPYRIGHT FOOTER ─────────────────────────────────── */
+.copyright {
+    text-align: center;
+    color: gray;
+    font-size: 12px;
+    padding: 24px 0 16px 0;
+}
+
+
+/* ── 22. MOBILE SIDEBAR TOGGLE ────────────────────────────── */
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 200;
+    background: rgba(14, 17, 23, 0.9);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: #FF6B6B;
+    font-size: 18px;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .sidebar-toggle {
+        display: block;
+    }
+}
+
+/* Add last updated status style */
+/* ── Last Updated Status ── */
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseDot {
+    0%   { box-shadow: 0 0 0 0 var(--pulse-color); transform: scale(1); }
+    50%  { box-shadow: 0 0 0 5px transparent; transform: scale(1.2); }
+    100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+}
+
+.last-updated-wrap {
+    padding: 10px 16px;
+    margin: 8px 12px;           /* 12px keeps it away from sidebar walls */
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.06);
+    animation: fadeInUp 0.6s ease forwards;   /* slides up on load */
+}
+
+.last-updated-label {
+    color: rgba(255,255,255,0.3);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.last-updated-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    --pulse-color: #38ef7d;     /* default green, overridden by JS */
+    animation: pulseDot 2s ease-in-out infinite;
+}
+
+.last-updated-date {
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    animation: fadeInUp 0.8s ease forwards;   /* slight delay after wrap */
+}
+
+.last-updated-age {
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+    margin-left: auto;
+    padding-right: 4px;
+}

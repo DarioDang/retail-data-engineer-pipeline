@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Price Analysis</title>
+    <link rel="icon" href="static/price-analysis.png" type="image/png"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+
+        /* Prevent overflow on the entire main content */
+        .main-content {
+            overflow-x: hidden;
+            min-width: 0;
+        }
+
+        /* Fix the filter+cards grid overflow */
+        .filter-and-cards {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .deal-cards-area {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .deal-cards-row {
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        /* Prevent product charts from overflowing */
+        #product-charts-container {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .product-charts-row {
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .product-chart-card {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* ── Filter + Cards layout ── */
+        .filter-and-cards {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 16px;
+            align-items: start;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .filter-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 50px;
+        }
+
+        .filter-btn {
+            height: 42px;
+            width: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.35);
+            gap: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .filter-btn img { width: 18px; height: 18px; object-fit: contain; }
+        .filter-btn.active-all    { background:#a78bfa; color:#1a0060; box-shadow:0 4px 16px rgba(167,139,250,0.45); border-color:transparent; }
+        .filter-btn.active-laptop { background:#38ef7d; color:#003d1c; box-shadow:0 4px 16px rgba(56,239,125,0.45);  border-color:transparent; }
+        .filter-btn.active-phone  { background:#60a5fa; color:#00205a; box-shadow:0 4px 16px rgba(96,165,250,0.45);  border-color:transparent; }
+        .filter-btn.active-camera { background:#fb923c; color:#4a1500; box-shadow:0 4px 16px rgba(251,146,60,0.45);  border-color:transparent; }
+
+        /* ── Deal cards: always 3 columns, no overflow ── */
+        .deal-cards-area {
+            min-width: 0;
+            overflow: hidden;
+            padding-top: 50px;
+        }
+
+        .deal-cards-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        .best-deal-card {
+            background: linear-gradient(135deg, #1a1d2e 0%, #1E2130 50%, #252840 100%);
+            border-radius: 10px;
+            padding: 12px 14px;
+            border-left: 3px solid #38ef7d;
+            border-bottom: 1px solid rgba(56,239,125,0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: default;
+            min-width: 0;
+        }
+
+        .best-deal-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(56,239,125,0.04), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .card-rank    { font-size:10px; font-weight:700; letter-spacing:1.5px; margin:0 0 4px 0; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .card-rank img { width:18px; height:18px; object-fit:contain; }
+        .card-product { color:white; font-size:12px; font-weight:700; margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .card-seller  { color:#8892a4; font-size:10px; margin:2px 0; font-style:italic; }
+        .card-divider { height:1px; margin:6px 0; }
+        .card-sparkline { margin:6px 0; overflow:hidden; border-radius:4px; }
+        .card-price   { font-size:14px; font-weight:800; margin:4px 0 2px 0; background:linear-gradient(90deg,#38ef7d,#11998e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .card-savings { color:#FF6B6B; font-size:10px; font-weight:700; margin:0; }
+
+        /* ── Category section header — NO border-left/right (prevents bracket) ── */
+        .cat-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 24px 0 8px 0;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+        }
+
+        .cat-header-line { flex:1; height:1px; }
+        .cat-header img  { width:18px; height:18px; }
+        .cat-header-label { font-size:13px; font-weight:800; letter-spacing:3px; text-transform:uppercase; }
+
+        /* ── Product charts grid ── */
+        .product-charts-row { display:grid; gap:16px; margin-bottom:8px; }
+        .product-charts-row.cols-1 { grid-template-columns: 1fr; }
+        .product-charts-row.cols-2 { grid-template-columns: repeat(2,1fr); }
+        .product-charts-row.cols-3 { grid-template-columns: repeat(3,1fr); }
+
+        .product-chart-card { background:rgba(255,255,255,0.02); border-radius:10px; padding:8px; min-width:0; }
+
+        .product-chart-title { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0 4px 0; flex-wrap:wrap; }
+        .product-chart-title img  { width:24px; height:24px; object-fit:contain; }
+        .product-chart-title span { color:white; font-size:13px; font-weight:600; }
+        .product-chart-badge { font-size:11px; font-weight:700; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:8px; }
+
+        /* ── Trend header ── */
+        .trend-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+
+        .trend-title {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #59BA87;
+            margin: 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .trend-filters {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            align-self: flex-end;
+        }
+        .trend-filters label { 
+            color:rgba(255,255,255,0.35); 
+            font-size:9px; 
+            font-weight:700; 
+            letter-spacing:2px; 
+            text-transform:uppercase; 
+            display:block; 
+            text-align:center; 
+            margin-bottom:2px; 
+        }
+        .trend-filters select { 
+            background:rgba(255,255,255,0.03); 
+            border:1px solid rgba(255,107,107,0.2); 
+            border-radius:8px; 
+            color:#FF6B6B; 
+            font-size:11px; 
+            font-weight:600; 
+            padding:4px 8px; 
+            outline:none; 
+        }
+
+        /* ── Carousel ── */
+        .ic-outer { width:100%; overflow:hidden; position:relative; padding:8px 0 4px 0; }
+        .ic-outer::before,.ic-outer::after { content:''; position:absolute; top:0; bottom:0; width:20px; z-index:2; pointer-events:none; }
+        .ic-outer::before { left:0;  background:linear-gradient(to right,#0e1117,transparent); }
+        .ic-outer::after  { right:0; background:linear-gradient(to left, #0e1117,transparent); }
+
+        .ic-track { display:flex; flex-wrap:nowrap; transition:transform 0.85s cubic-bezier(0.4,0,0.2,1); will-change:transform; }
+
+        .ic-page { display:flex; flex-shrink:0; gap:12px; padding:0 40px; }
+
+        .ic-wrap { position:relative; border-radius:14px; padding:20px 16px 16px 16px; text-align:center; border:1px solid var(--ic); background:linear-gradient(160deg,rgba(255,255,255,0.03) 0%,rgba(255,255,255,0.01) 100%); overflow:hidden; flex:1; height:170px; min-height:170px; transition:transform 0.25s ease,box-shadow 0.25s ease; cursor:default; }
+        .ic-bar { position:absolute; top:0; left:0; right:0; height:3px; background:var(--ic); border-radius:14px 14px 0 0; }
+        .ic-scan { position:absolute; left:0; right:0; height:40%; background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.03),transparent); animation:scanline 3s linear infinite; pointer-events:none; }
+        .ic-dot-tl,.ic-dot-br { position:absolute; width:5px; height:5px; border-radius:50%; background:var(--ic); animation:floatDot 2.5s ease-in-out infinite; }
+        .ic-dot-tl { top:10px; left:10px; }
+        .ic-dot-br { bottom:10px; right:10px; animation-delay:1.2s; }
+
+        .ic-title { color:var(--ic); font-size:9px; font-weight:800; letter-spacing:2.5px; margin:8px 0 10px 0; text-transform:uppercase; opacity:0.85; }
+        .ic-value { font-size:20px; font-weight:800; color:white; margin:0 0 6px 0; letter-spacing:0.5px; }
+        .ic-sub   { color:rgba(255,255,255,0.45); font-size:10px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.5px; }
+        .ic-progress-wrap { margin-top:12px; height:3px; border-radius:99px; background:rgba(255,255,255,0.06); overflow:hidden; }
+        .ic-progress-fill { height:100%; border-radius:99px; background:var(--ic); }
+
+        .ic-indicators { display:flex; justify-content:center; gap:6px; margin-top:12px; }
+        .ic-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.2); transition:all 0.4s ease; cursor:pointer; }
+        .ic-dot.active { background:white; width:18px; border-radius:99px; }
+
+        /* ── Section titles ── */
+        .section-title-price { font-size:25px; font-weight:800; letter-spacing:2px; text-align:center; padding:8px 0; text-transform:uppercase; }
+
+        /* ── Animations ── */
+        @keyframes floatDot { 0%,100%{transform:translateY(0);opacity:0.6;} 50%{transform:translateY(-5px);opacity:1;} }
+        @keyframes scanline  { 0%{top:0%;} 100%{top:100%;} }
+        @keyframes sparkDraw { from{stroke-dashoffset:400;} to{stroke-dashoffset:0;} }
+        @keyframes sparkFloat{ 0%,100%{transform:translateX(0px);} 50%{transform:translateX(-6px);} }
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><p>DASHBOARD CATEGORY</p></div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item"><img src="static/home-icon.png" alt=""/> Home</a>
+            <a href="overview.html" class="nav-item"><img src="static/overview.png" alt=""/> Overview</a>
+            <a href="price.html" class="nav-item active"><img src="static/price-analysis.png" alt=""/> Price Analysis</a>
+            <a href="seller.html" class="nav-item"><img src="static/seller-intelligence.png" alt=""/> Seller Intelligence</a>
+        </nav>
+
+        <div class="last-updated-wrap" id="last-updated-wrap">
+            <p class="last-updated-label">Last Updated</p>
+            <div class="last-updated-row">
+                <div class="status-dot" id="status-dot" style="background:#444;"></div>
+                <span class="last-updated-date" id="last-updated-date">—</span>
+                <span class="last-updated-age" id="last-updated-age"></span>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="footer-profile-row">
+                <div class="footer-avatar">DD</div>
+                <div><p class="footer-name">Dario Dang</p><p class="footer-title">Data Analyst</p></div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-links">
+                <a class="footer-link github" href="https://github.com/DarioDang" target="_blank">
+                    <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#e6edf3"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg></span>
+                    <span class="footer-link-text">GitHub</span>
+                </a>
+                <a class="footer-link linkedin" href="https://www.linkedin.com/in/dario-dang-89049020a/" target="_blank">
+                    <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+                    <span class="footer-link-text">LinkedIn</span>
+                </a>
+                <a class="footer-link portfolio" href="https://dariodang.github.io/" target="_blank">
+                    <span class="footer-link-icon"><img src="static/portfolio-sidebar-icon.png" width="14" height="14" style="vertical-align:middle;"/></span>
+                    <span class="footer-link-text">Portfolio</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+    <main class="main-content">
+
+        <!-- Header -->
+        <div class="page-header">
+            <img src="static/price-analysis.png" alt="" class="page-title-icon"/>
+            <h1 class="page-title-text">PRICE ANALYSIS</h1>
+        </div>
+        <p class="page-subtitle">Price trends and ranges across products</p>
+        <hr class="divider"/>
+
+        <!-- Section 1: Filter + Deal Cards -->
+        <div class="filter-and-cards">
+            <div class="filter-panel">
+                <button class="filter-btn active-all"    id="btn-all"    onclick="setCategory('All')">   <img src="static/all-icon.png"    alt=""/> ALL</button>
+                <button class="filter-btn"               id="btn-laptop" onclick="setCategory('laptop')"><img src="static/laptop-icon.png"  alt=""/> LAPTOP</button>
+                <button class="filter-btn"               id="btn-phone"  onclick="setCategory('phone')"> <img src="static/mobile-icon.png"  alt=""/> PHONE</button>
+                <button class="filter-btn"               id="btn-camera" onclick="setCategory('camera')"><img src="static/camera-icon.png"  alt=""/> CAMERA</button>
+            </div>
+            <div class="deal-cards-area">
+                <div class="deal-cards-row" id="deal-cards-row"></div>
+            </div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Section 2: Avg Price Over Time per product -->
+        <div class="trend-header">
+            <p class="trend-title">AVERAGE PRICE OVER TIME</p>
+            <div class="trend-filters">
+                <div><label>FROM</label><select id="date-from"></select></div>
+                <div><label>TO</label><select id="date-to"></select></div>
+            </div>
+        </div>
+        <div id="product-charts-container"></div>
+
+        <hr class="divider"/>
+
+        <!-- Section 3: Box Plot -->
+        <p class="section-title-price" style="color:#489C53;">PRICE RANGE BY PRODUCT</p>
+        <div id="chart-box" style="height:400px;"></div>
+
+        <hr class="divider"/>
+
+        <!-- Section 4: Carousel -->
+        <p class="section-title-price" style="color:#4F8C6C;">PRICE STATISTICS PER PRODUCT</p>
+
+        <div class="ic-outer" id="icOuter">
+            <div class="ic-track" id="icTrack">
+
+                <!-- Page 1 -->
+                <div class="ic-page" id="ic-p0">
+                    <div class="ic-wrap" style="--ic:#FF6B6B;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST EXPENSIVE (7D)</p><p class="ic-value" id="ic-val-expensive">—</p><p class="ic-sub" id="ic-sub-expensive">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:85%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#38ef7d;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">LOWEST AVG (7D)</p><p class="ic-value" id="ic-val-cheapest">—</p><p class="ic-sub" id="ic-sub-cheapest">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:40%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#667eea;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST COMPETITIVE</p><p class="ic-value" id="ic-val-competitive">—</p><p class="ic-sub" id="ic-sub-competitive">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:70%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#f7971e;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">BEST DEAL TODAY</p><p class="ic-value" id="ic-val-best-deal">—</p><p class="ic-sub" id="ic-sub-best-deal">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:60%;"></div></div></div>
+                </div>
+
+                <!-- Page 2 -->
+                <div class="ic-page" id="ic-p1">
+                    <div class="ic-wrap" style="--ic:#FF6B6B;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">PRICE JUMP ↑ VS YESTERDAY</p><p class="ic-value" id="ic-val-jump">—</p><p class="ic-sub" id="ic-sub-jump">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:85%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#38ef7d;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">PRICE DROP ↓ VS YESTERDAY</p><p class="ic-value" id="ic-val-drop">—</p><p class="ic-sub" id="ic-sub-drop">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:40%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#f953c6;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">PRICE ALERT ↑ THIS WEEK</p><p class="ic-value" id="ic-val-alert">—</p><p class="ic-sub" id="ic-sub-alert">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:75%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#00c9ff;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">BEST DROP ↓ THIS WEEK</p><p class="ic-value" id="ic-val-weekly">—</p><p class="ic-sub" id="ic-sub-weekly">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:55%;"></div></div></div>
+                </div>
+
+                <!-- Page 3 -->
+                <div class="ic-page" id="ic-p2">
+                    <div class="ic-wrap" style="--ic:#fddb92;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">HIGHEST RATED</p><p class="ic-value" id="ic-val-rated">—</p><p class="ic-sub" id="ic-sub-rated">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:65%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#00c9ff;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST REVIEWED</p><p class="ic-value" id="ic-val-reviewed">—</p><p class="ic-sub" id="ic-sub-reviewed">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:55%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#a8edea;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">BIGGEST RANGE</p><p class="ic-value" id="ic-val-range">—</p><p class="ic-sub" id="ic-sub-range">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:50%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#f953c6;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST SELLERS</p><p class="ic-value" id="ic-val-sellers">—</p><p class="ic-sub" id="ic-sub-sellers">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:70%;"></div></div></div>
+                </div>
+
+                <!-- Page 1 clone -->
+                <div class="ic-page" id="ic-p3">
+                    <div class="ic-wrap" style="--ic:#FF6B6B;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST EXPENSIVE (7D)</p><p class="ic-value" id="ic-val-expensive2">—</p><p class="ic-sub" id="ic-sub-expensive2">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:85%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#38ef7d;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">LOWEST AVG (7D)</p><p class="ic-value" id="ic-val-cheapest2">—</p><p class="ic-sub" id="ic-sub-cheapest2">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:40%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#667eea;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">MOST COMPETITIVE</p><p class="ic-value" id="ic-val-competitive2">—</p><p class="ic-sub" id="ic-sub-competitive2">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:70%;"></div></div></div>
+                    <div class="ic-wrap" style="--ic:#f7971e;"><div class="ic-bar"></div><div class="ic-scan"></div><div class="ic-dot-tl"></div><div class="ic-dot-br"></div><p class="ic-title">BEST DEAL TODAY</p><p class="ic-value" id="ic-val-best-deal2">—</p><p class="ic-sub" id="ic-sub-best-deal2">—</p><div class="ic-progress-wrap"><div class="ic-progress-fill" style="width:60%;"></div></div></div>
+                </div>
+
+            </div>
+        </div>
+        <div class="ic-indicators">
+            <div class="ic-dot active" id="ic-dot0"></div>
+            <div class="ic-dot" id="ic-dot1"></div>
+            <div class="ic-dot" id="ic-dot2"></div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Section 5: Price Spread + Seller Count -->
+        <div class="grid-2">
+            <div><div id="chart-spread" style="height:400px;"></div></div>
+            <div><div id="chart-seller-count" style="height:400px;"></div></div>
+        </div>
+
+        <hr class="divider"/>
+        <p class="copyright">© 2026 Retail Price Intelligence Dashboard</p>
+
+    </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/price.js"></script>
+<script>function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }</script>
+</body>
+</html>

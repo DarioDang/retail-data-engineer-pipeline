@@ -32,8 +32,15 @@ def rating_by_seller():
     """
     Top 15 sellers by average rating (minimum 2 listings to qualify).
     Used by the seller rating bar chart."""
+    return _safe_query("seller_rating_by_seller", queries.RATING_BY_SELLER)
 
-    return _safe_query("seller_rating_status", queries.RATING_STATUS_DISTRIBUTION)
+@router.get("/rating-status-distribution")
+def rating_status_distribution():
+    """
+    Distribution of rating statuses across all listings.
+    Used by the rating status pie chart.
+    """
+    return _safe_query("seller_rating_status_distribution", queries.RATING_STATUS_DISTRIBUTION)
 
 @router.get("/category-summary")
 def category_summary():
@@ -41,6 +48,11 @@ def category_summary():
     Aggregated stats per category: product count, seller count,
     total listings, price range.
     """
-
     return _safe_query("seller_category_summary", queries.CATEGORY_SUMMARY)
 
+@router.get("/cheapest-seller-per-category")
+def cheapest_seller_per_category():
+    """
+    The single cheapest seller per category on the latest snapshot date.
+    """
+    return _safe_query("seller_cheapest_per_category", queries.CHEAPEST_SELLER_PER_CATEGORY)

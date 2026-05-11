@@ -269,3 +269,8 @@ CHEAPEST_SELLER_PER_CATEGORY = """
         ROUND(((avg_price - price) / avg_price * 100)::numeric, 1) AS savings_pct
     FROM ranked WHERE rn = 1 ORDER BY category
 """
+
+LAST_UPDATED = """
+    SELECT MAX(snapshot_date) AS last_updated
+    FROM dev_marts.fact_price_snapshot
+"""

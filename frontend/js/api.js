@@ -19,17 +19,21 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 ────────────────────────────────────────────────────────────── */
 
 /* ── Loading overlay controller ── */
+/* ── Loading overlay controller ── */
 let _loadingTimer = null;
 let _requestCount = 0;
+let _startTime = Date.now();
 
 function showLoadingOverlay() {
     _requestCount++;
-    /* Only show overlay if API takes more than 2 seconds */
     if (!_loadingTimer) {
+        /* Only show if API takes more than 4 seconds */
         _loadingTimer = setTimeout(() => {
             const overlay = document.getElementById('api-loading-overlay');
-            if (overlay) overlay.style.display = 'flex';
-        }, 2000);
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }, 4000);  /* increased from 2s to 4s */
     }
 }
 
@@ -39,12 +43,16 @@ function hideLoadingOverlay() {
         clearTimeout(_loadingTimer);
         _loadingTimer = null;
         const overlay = document.getElementById('api-loading-overlay');
-        if (overlay) {
+        if (overlay && overlay.style.display === 'flex') {
+            /* Only animate hide if it was actually shown */
             overlay.classList.add('hiding');
             setTimeout(() => {
                 overlay.style.display = 'none';
                 overlay.classList.remove('hiding');
             }, 500);
+        } else {
+            /* Was never shown — just make sure it's hidden */
+            if (overlay) overlay.style.display = 'none';
         }
     }
 }

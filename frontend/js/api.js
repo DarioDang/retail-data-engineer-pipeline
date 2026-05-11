@@ -19,39 +19,58 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 ────────────────────────────────────────────────────────────── */
 
 /* ── Loading overlay controller ── */
-/* ── Loading overlay controller ── */
 let _loadingTimer = null;
 let _requestCount = 0;
-let _startTime = Date.now();
+
+function isApiAwake() {
+    /* Remember API is awake for 10 minutes within the session */
+    const lastWake = sessionStorage.getItem('api_awake_at');
+    if (!lastWake) return false;
+    const elapsed = Date.now() - parseInt(lastWake);
+    return elapsed < 10 * 60 * 1000; /* 10 minutes */
+}
+
+function markApiAwake() {
+    sessionStorage.setItem('api_awake_at', Date.now().toString());
+}
 
 function showLoadingOverlay() {
+    /* Skip overlay entirely if API was recently alive */
+    if (isApiAwake()) return;
     _requestCount++;
     if (!_loadingTimer) {
-        /* Only show if API takes more than 4 seconds */
         _loadingTimer = setTimeout(() => {
             const overlay = document.getElementById('api-loading-overlay');
-            if (overlay) {
-                overlay.style.display = 'flex';
-            }
-        }, 4000);  /* increased from 2s to 4s */
+            if (overlay) overlay.style.display = 'flex';
+        }, 5000);
     }
 }
 
 function hideLoadingOverlay() {
+    /* Mark API as awake on first successful response */
+    markApiAwake();
+
+    if (isApiAwake()) {
+        /* Already marked awake — just ensure overlay is hidden */
+        clearTimeout(_loadingTimer);
+        _loadingTimer = null;
+        const overlay = document.getElementById('api-loading-overlay');
+        if (overlay) overlay.style.display = 'none';
+        return;
+    }
+
     _requestCount = Math.max(0, _requestCount - 1);
     if (_requestCount === 0) {
         clearTimeout(_loadingTimer);
         _loadingTimer = null;
         const overlay = document.getElementById('api-loading-overlay');
         if (overlay && overlay.style.display === 'flex') {
-            /* Only animate hide if it was actually shown */
             overlay.classList.add('hiding');
             setTimeout(() => {
                 overlay.style.display = 'none';
                 overlay.classList.remove('hiding');
             }, 500);
         } else {
-            /* Was never shown — just make sure it's hidden */
             if (overlay) overlay.style.display = 'none';
         }
     }

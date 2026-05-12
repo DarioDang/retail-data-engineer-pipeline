@@ -48,6 +48,6 @@ app.include_router(seller.router,   prefix="/api/seller",   tags=["Seller Intell
 # Healthcheck
 # Render and Railway both ping this endpoint to confirm the service is alive.
 # You can also use it to confirm the API is reachable from your browser.
-@app.get("/health", tags=["Health"])
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok", "version": "1.0.0"}

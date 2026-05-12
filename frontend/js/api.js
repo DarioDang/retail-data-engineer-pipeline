@@ -19,26 +19,36 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 ────────────────────────────────────────────────────────────── */
 
 /* ── Loading overlay controller ── */
+/* ── Loading overlay controller ── */
 let _loadingTimer = null;
 let _requestCount = 0;
 
-function isApiAwake() {
+/* Check once at page load — if API was alive recently, hide overlay immediately */
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('api-loading-overlay');
+    if (!overlay) return;
+    
     const lastWake = sessionStorage.getItem('api_awake_at');
-    if (!lastWake) return false;
-    return (Date.now() - parseInt(lastWake)) < 10 * 60 * 1000;
-}
-
-function markApiAwake() {
-    sessionStorage.setItem('api_awake_at', Date.now().toString());
-}
+    const isAwake  = lastWake && (Date.now() - parseInt(lastWake)) < 10 * 60 * 1000;
+    
+    if (isAwake) {
+        /* API is awake — permanently hide overlay, never show it */
+        overlay.style.display = 'none';
+        overlay.setAttribute('data-skip', 'true');
+    }
+});
 
 function showLoadingOverlay() {
-    if (isApiAwake()) return;   /* skip if API recently responded */
+    const overlay = document.getElementById('api-loading-overlay');
+    /* Skip if marked to never show */
+    if (!overlay || overlay.getAttribute('data-skip') === 'true') return;
+
     _requestCount++;
     if (_requestCount === 1 && !_loadingTimer) {
         _loadingTimer = setTimeout(() => {
-            const overlay = document.getElementById('api-loading-overlay');
-            if (overlay) overlay.style.display = 'flex';
+            if (overlay.getAttribute('data-skip') !== 'true') {
+                overlay.style.display = 'flex';
+            }
         }, 5000);
     }
 }
@@ -47,22 +57,25 @@ function hideLoadingOverlay() {
     _requestCount = Math.max(0, _requestCount - 1);
 
     if (_requestCount === 0) {
-        /* Cancel timer regardless — API responded */
         clearTimeout(_loadingTimer);
         _loadingTimer = null;
 
-        /* Mark API as awake for next 10 minutes */
-        markApiAwake();
+        /* Mark API awake for 10 minutes */
+        sessionStorage.setItem('api_awake_at', Date.now().toString());
 
-        /* Hide overlay only if it was actually shown */
         const overlay = document.getElementById('api-loading-overlay');
-        if (overlay && overlay.style.display === 'flex') {
+        if (!overlay) return;
+
+        /* Mark as skip so it never shows again this session */
+        overlay.setAttribute('data-skip', 'true');
+
+        if (overlay.style.display === 'flex') {
             overlay.classList.add('hiding');
             setTimeout(() => {
                 overlay.style.display = 'none';
                 overlay.classList.remove('hiding');
             }, 500);
-        } else if (overlay) {
+        } else {
             overlay.style.display = 'none';
         }
     }

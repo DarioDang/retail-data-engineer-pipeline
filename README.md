@@ -3,7 +3,7 @@
 > An end-to-end data engineering pipeline that tracks electronics prices across New Zealand retailers daily — from raw API ingestion to an interactive analytics dashboard.
 
 [![Pipeline Status](https://img.shields.io/badge/pipeline-automated-brightgreen)](https://app.prefect.cloud)
-[![Dashboard](https://img.shields.io/badge/dashboard-live-blue)](https://digital-retail-dashboard.streamlit.app)
+[![Dashboard](https://img.shields.io/badge/dashboard-live-blue)](https://retail-price-intelligence.netlify.app/)
 [![dbt](https://img.shields.io/badge/dbt-1.11-orange)](https://www.getdbt.com)
 [![Python](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org)
 
@@ -11,7 +11,7 @@
 
 ## 📊 Live Dashboard
 
-**[digital-retail-dashboard.streamlit.app](https://digital-retail-dashboard.streamlit.app)**
+**[digital-retail-dashboard.streamlit.app](https://retail-price-intelligence.netlify.app/)**
 
 Tracks 8 consumer electronics products across 3 categories (Laptop, Phone, Camera) in the New Zealand market — updated daily.
 

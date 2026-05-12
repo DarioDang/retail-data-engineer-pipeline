@@ -23,11 +23,9 @@ let _loadingTimer = null;
 let _requestCount = 0;
 
 function isApiAwake() {
-    /* Remember API is awake for 10 minutes within the session */
     const lastWake = sessionStorage.getItem('api_awake_at');
     if (!lastWake) return false;
-    const elapsed = Date.now() - parseInt(lastWake);
-    return elapsed < 10 * 60 * 1000; /* 10 minutes */
+    return (Date.now() - parseInt(lastWake)) < 10 * 60 * 1000;
 }
 
 function markApiAwake() {
@@ -35,10 +33,9 @@ function markApiAwake() {
 }
 
 function showLoadingOverlay() {
-    /* Skip overlay entirely if API was recently alive */
-    if (isApiAwake()) return;
+    if (isApiAwake()) return;   /* skip if API recently responded */
     _requestCount++;
-    if (!_loadingTimer) {
+    if (_requestCount === 1 && !_loadingTimer) {
         _loadingTimer = setTimeout(() => {
             const overlay = document.getElementById('api-loading-overlay');
             if (overlay) overlay.style.display = 'flex';
@@ -47,22 +44,17 @@ function showLoadingOverlay() {
 }
 
 function hideLoadingOverlay() {
-    /* Mark API as awake on first successful response */
-    markApiAwake();
-
-    if (isApiAwake()) {
-        /* Already marked awake — just ensure overlay is hidden */
-        clearTimeout(_loadingTimer);
-        _loadingTimer = null;
-        const overlay = document.getElementById('api-loading-overlay');
-        if (overlay) overlay.style.display = 'none';
-        return;
-    }
-
     _requestCount = Math.max(0, _requestCount - 1);
+
     if (_requestCount === 0) {
+        /* Cancel timer regardless — API responded */
         clearTimeout(_loadingTimer);
         _loadingTimer = null;
+
+        /* Mark API as awake for next 10 minutes */
+        markApiAwake();
+
+        /* Hide overlay only if it was actually shown */
         const overlay = document.getElementById('api-loading-overlay');
         if (overlay && overlay.style.display === 'flex') {
             overlay.classList.add('hiding');
@@ -70,12 +62,11 @@ function hideLoadingOverlay() {
                 overlay.style.display = 'none';
                 overlay.classList.remove('hiding');
             }, 500);
-        } else {
-            if (overlay) overlay.style.display = 'none';
+        } else if (overlay) {
+            overlay.style.display = 'none';
         }
     }
 }
-
 /* ── API fetch with loading overlay ── */
 async function apiFetch(endpoint) {
     const url = `${API_BASE}${endpoint}`;

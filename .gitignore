@@ -15,3 +15,11 @@ secrets.txt
 backup-script
 .DS_Store
 **/.DS_Store
+frontend/command-line-syntax.txt
+__pycache__/
+*.py[cod]
+*$py.class
+dashboard/.DS_Store.DS_Store
+**/.DS_Store
+notebooks/01-Inspect-Dataset.ipynb
+.ipynb_checkpoints/

@@ -41,19 +41,18 @@ async function loadKpiCards() {
 
 /* ── 2. KPI Row 2: Discount cards ── */
 async function loadDiscountCards() {
-    const data = await getDiscounts();
-    if (!data || data.length === 0) {
-        ['val-discounted','val-avg-discount','val-max-discount'].forEach(id => {
-            document.getElementById(id).textContent = '0';
-        });
-        return;
-    }
-    const total   = data.length;
-    const avg     = (data.reduce((s,d) => s + (d.discount_pct||0), 0) / total).toFixed(1);
-    const max     = Math.max(...data.map(d => d.discount_pct||0));
-    document.getElementById('val-discounted').textContent   = fmt(total);
-    document.getElementById('val-avg-discount').textContent = `${avg}%`;
-    document.getElementById('val-max-discount').textContent = `${max}%`;
+    const [countData, avgData, maxData] = await Promise.all([
+        getCurrentlyDiscounted(),
+        getAvgDiscountToday(),
+        getMaxDiscountToday()
+    ]);
+
+    document.getElementById('val-discounted').textContent =
+        countData ? fmt(countData.total) : '0';
+    document.getElementById('val-avg-discount').textContent =
+        avgData ? `${avgData.avg_discount}%` : '0%';
+    document.getElementById('val-max-discount').textContent =
+        maxData ? `${maxData.max_discount}%` : '0%';
 }
 
 /* ── 3. Average Price Bar Chart ── */

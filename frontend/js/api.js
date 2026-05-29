@@ -7,9 +7,14 @@
 ============================================================= */
 
 /* Auto-detect environment — localhost uses local API, production uses Render */
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : 'https://retail-price-api.onrender.com';
+// const API_BASE = window.location.hostname === 'localhost' || 
+//                  window.location.hostname === '127.0.0.1' ||
+//                  window.location.hostname === '[::1]' ||
+//                  window.location.hostname === ''
+//     ? 'http://localhost:8000'
+//     : 'https://retail-price-api.onrender.com';
+
+const API_BASE = 'http://localhost:8000';
 
 /* ── Helper ───────────────────────────────────────────────────
     All fetch calls go through this function.
@@ -104,6 +109,16 @@ async function apiFetch(endpoint) {
    Return: {total: 3425} */
 async function getTotalListings() {
     return apiFetch('/api/overview/total-listings');
+}
+
+async function getCurrentlyDiscounted() {
+    return await apiFetch('/api/overview/currently-discounted');
+}
+async function getAvgDiscountToday() {
+    return await apiFetch('/api/overview/avg-discount-today');
+}
+async function getMaxDiscountToday() {
+    return await apiFetch('/api/overview/max-discount-today');
 }
 
 async function getTotalProducts() {

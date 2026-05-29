@@ -7,14 +7,12 @@
 ============================================================= */
 
 /* Auto-detect environment — localhost uses local API, production uses Render */
-// const API_BASE = window.location.hostname === 'localhost' || 
-//                  window.location.hostname === '127.0.0.1' ||
-//                  window.location.hostname === '[::1]' ||
-//                  window.location.hostname === ''
-//     ? 'http://localhost:8000'
-//     : 'https://retail-price-api.onrender.com';
-
-const API_BASE = 'http://localhost:8000';
+const API_BASE = window.location.hostname === 'localhost' || 
+                 window.location.hostname === '127.0.0.1' ||
+                 window.location.hostname === '[::1]' ||
+                 window.location.hostname === ''
+    ? 'http://localhost:8000'
+    : 'https://retail-price-api.onrender.com';
 
 /* ── Helper ───────────────────────────────────────────────────
     All fetch calls go through this function.

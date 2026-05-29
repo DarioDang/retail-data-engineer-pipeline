@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from prefect import flow, task, get_run_logger
 from prefect.blocks.system import Secret
+from sqlalchemy import create_engine, text
 from prefect.client.schemas.schedules import CronSchedule
 from prefect_aws import AwsCredentials
 
@@ -96,6 +97,28 @@ def dbt_test_task():
         raise Exception(f"dbt test failed: {result.stderr}")
     logger.info("✅ dbt tests passed")
 
+@task(name="Cleanup: Remove old records", retries=1, retry_delay_seconds=30)
+def cleanup_task():
+    logger = get_run_logger()
+    logger.info("Running 90-day retention cleanup...")
+
+    engine = create_engine(
+        f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}"
+        f"@{os.environ['POSTGRES_HOST']}:{os.environ['POSTGRES_PORT']}"
+        f"/{os.environ['POSTGRES_DB']}"
+    )
+
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            DELETE FROM raw_shopping.electronic_products
+            WHERE ingested_at < NOW() - INTERVAL '90 days'
+        """))
+        conn.commit()
+        logger.info(f"Deleted {result.rowcount} rows older than 90 days")
+
+    engine.dispose()
+    logger.info("Cleanup complete")
+
 # ── Main Flow ──────────────────────────────────────────────────────────────────
 @flow(
     name="retail-price-pipeline",
@@ -111,6 +134,7 @@ def retail_pipeline():
     # Run tasks sequentially — mirrors Kestra flow
     ingest_task()
     load_task()
+    cleanup_task() 
     dbt_run_task()
     dbt_test_task()
 

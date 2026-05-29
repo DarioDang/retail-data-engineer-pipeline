@@ -4,18 +4,26 @@
 # No SQL changes needed - FastAPI runs the exact same queries against
 
 TOTAL_LISTINGS = """
-    SELECT COUNT(*) as total
+    SELECT COUNT(*) AS total
     FROM dev_marts.fact_price_snapshot
+    WHERE snapshot_date = (
+        SELECT MAX(snapshot_date)
+        FROM dev_marts.fact_price_snapshot
+    )
 """
  
 TOTAL_PRODUCTS = """
     SELECT COUNT(DISTINCT product_name) as total
     FROM dev_marts.dim_product
 """
- 
+
 TOTAL_SELLERS = """
-    SELECT COUNT(DISTINCT store_name) as total
-    FROM dev_marts.dim_store
+    SELECT COUNT(DISTINCT seller) AS total
+    FROM dev_marts.fact_price_snapshot
+    WHERE snapshot_date = (
+        SELECT MAX(snapshot_date)
+        FROM dev_marts.fact_price_snapshot
+    )
 """
  
 LISTING_BY_SELLER = """
@@ -90,7 +98,47 @@ DISCOUNT_PRODUCTS = """
         discount_pct
     FROM dev_marts.fact_price_snapshot
     WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
     ORDER BY discount_pct DESC
+"""
+
+DISCOUNT_PRODUCTS = """
+    SELECT
+        product_name,
+        seller,
+        price,
+        old_price,
+        discount_pct
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
+    ORDER BY discount_pct DESC
+"""
+
+AVG_DISCOUNT_TODAY = """
+    SELECT ROUND(AVG(discount_pct)::numeric, 1) AS avg_discount
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
+"""
+
+MAX_DISCOUNT_TODAY = """
+    SELECT ROUND(MAX(discount_pct)::numeric, 2) AS max_discount
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
 """
  
 # ── Seller Intelligence Queries ────────────────────────────────────────────────
@@ -273,4 +321,34 @@ CHEAPEST_SELLER_PER_CATEGORY = """
 LAST_UPDATED = """
     SELECT MAX(snapshot_date) AS last_updated
     FROM dev_marts.fact_price_snapshot
+"""
+
+CURRENTLY_DISCOUNTED_COUNT = """
+    SELECT COUNT(*) AS total
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
+"""
+
+AVG_DISCOUNT_TODAY = """
+    SELECT ROUND(AVG(discount_pct)::numeric, 1) AS avg_discount
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
+"""
+
+MAX_DISCOUNT_TODAY = """
+    SELECT ROUND(MAX(discount_pct)::numeric, 2) AS max_discount
+    FROM dev_marts.fact_price_snapshot
+    WHERE discount_pct IS NOT NULL
+      AND snapshot_date = (
+          SELECT MAX(snapshot_date)
+          FROM dev_marts.fact_price_snapshot
+      )
 """

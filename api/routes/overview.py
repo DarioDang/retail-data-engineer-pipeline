@@ -80,3 +80,32 @@ def last_updated():
     Timestamp of the most recent data snapshot
     Used by the "Last Updated" info box on the sidebar"""
     return _safe_query("last_updated", queries.LAST_UPDATED)
+
+@router.get("/currently-discounted")
+def currently_discounted():
+    """
+    Count of listings with a discount on the latest snapshot date only.
+    Used by the 'Currently Discounted' KPI card.
+    Response: {"total": 47}
+    """
+
+    rows = _safe_query("overview_currently_discounted", queries.CURRENTLY_DISCOUNTED_COUNT)
+    return rows[0] if rows else {"total": 0}
+
+@router.get("/avg-discount-today")
+def avg_discount_today():
+    """
+    Average discount % across discounted listings on the latest snapshot date.
+    Response: {"avg_discount": 12.4}
+    """
+    rows = _safe_query("overview_avg_discount_today", queries.AVG_DISCOUNT_TODAY)
+    return rows[0] if rows else {"avg_discount": 0}
+
+@router.get("/max-discount-today")
+def max_discount_today():
+    """
+    Biggest discount % on the latest snapshot date.
+    Response: {"max_discount": 45.0}
+    """
+    rows = _safe_query("overview_max_discount_today", queries.MAX_DISCOUNT_TODAY)
+    return rows[0] if rows else {"max_discount": 0}

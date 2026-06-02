@@ -33,6 +33,7 @@ services:
         condition: service_healthy
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
   
   # Kestra Workflow Orchestration
   kestra:

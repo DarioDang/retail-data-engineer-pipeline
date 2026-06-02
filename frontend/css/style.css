@@ -1597,7 +1597,7 @@ body > * {
     }
 }
 
-/* ── Sidebar mobile fix ── */
+/* ── Sidebar mobile ── */
 @media (max-width: 768px) {
     .sidebar {
         padding-top: 56px;

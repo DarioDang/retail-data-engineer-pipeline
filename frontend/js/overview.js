@@ -79,7 +79,7 @@ async function loadAvgPriceChart() {
         bargroupgap: 0.1,
         yaxis: { ...PLOTLY_BASE.yaxis, tickprefix: '$' },
         showlegend: false
-    }, { responsive: true, displayModeBar: false });
+    }, { responsive: true, displayModeBar: false, staticPlot: true });
 }
 
 /* ── 4. Donut Chart ── */
@@ -121,7 +121,7 @@ async function loadDonutChart() {
             font: { size: 16, color: 'white' },
             showarrow: false
         }]
-    }, { responsive: true, displayModeBar: false });
+    }, { responsive: true, displayModeBar: false, staticPlot: true });
 }
 
 /* ── 5. Price Trend Line Chart ── */
@@ -224,7 +224,7 @@ async function loadTrendChart() {
                 yanchor: 'top',   
                 font: { size: 14, color: '#F5F73E' }
             },
-        }, { responsive: true, displayModeBar: false });
+        }, { responsive: true, displayModeBar: false, staticPlot: true });
     }
 
     renderTrend();

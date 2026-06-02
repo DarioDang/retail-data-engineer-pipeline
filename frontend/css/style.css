@@ -77,13 +77,6 @@ body > * {
     max-width: 100%;
 }
 
-@media (max-width: 768px) {
-    .main-content {
-        margin-left: 0;
-        padding: 1rem;
-    }
-}
-
 
 /* ── 4. SIDEBAR ───────────────────────────────────────────── */
 /* Translates the full sidebar.py render_sidebar() function */
@@ -1247,3 +1240,390 @@ body > * {
     100% { width: 95%; }
 }
 
+/* ============================================================
+   MOBILE RESPONSIVE — ≤768px
+   ============================================================ */
+
+/* ── Sidebar backdrop (base — always hidden by default) ── */
+
+@media (max-width: 768px) {
+
+    /* ── Layout ── */
+    .layout {
+        flex-direction: column;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 4.5rem 1rem 5.5rem 1rem;
+    }
+
+    /* ── Fix: page header left-padding clears the hamburger button ── */
+    .page-header {
+        padding-left: 56px;
+        justify-content: flex-start;
+    }
+
+    .page-title-text {
+        font-size: 22px !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    .page-title-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .page-subtitle {
+        font-size: 12px;
+    }
+
+    /* ── Metric Cards: compact horizontal layout ── */
+    .metric-card {
+        min-height: 70px !important;     /* Fix: was 90px, now more compact */
+        padding: 10px 14px !important;   /* Fix: was 14px 16px */
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 14px;
+        text-align: left !important;
+    }
+
+    .metric-card .sparkline-top,
+    .metric-card .sparkline-bottom {
+        display: none;
+    }
+
+    .metric-icon {
+        font-size: 28px !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .metric-icon img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .metric-value {
+        font-size: 24px !important;
+        text-align: left !important;
+    }
+
+    .metric-label {
+        font-size: 9px !important;
+        margin-top: 2px !important;
+        text-align: left !important;
+    }
+
+    /* ── Trend Filters: stack below title ── */
+    .trend-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        min-height: unset;
+    }
+
+    .trend-title {
+        font-size: 16px !important;
+    }
+
+    .trend-filters {
+        position: static !important;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .trend-filters select {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    /* ── Chart labels ── */
+    .chart-label {
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    /* ── Dividers ── */
+    .divider {
+        margin: 16px 0;
+    }
+
+    /* ── Sidebar toggle position ── */
+    .sidebar-toggle {
+        top: 12px;
+        left: 12px;
+        padding: 6px 10px;
+        font-size: 16px;
+    }
+
+    /* ── Show bottom nav ── */
+    .bottom-nav {
+        display: flex;
+    }
+}
+
+/* ── Bottom Nav Bar (hidden on desktop, shown on mobile via above) ── */
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(180deg, #0e1117 0%, #1a1d2e 100%);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 150;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    text-decoration: none;
+    color: rgba(255,255,255,0.35);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 4px;
+    border-radius: 10px;
+    transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+}
+
+.bottom-nav-item.active {
+    color: #FF6B6B;
+}
+
+.bottom-nav-item.active img {
+    opacity: 1;
+}
+
+.bottom-nav-item:active {
+    background: rgba(255,107,107,0.08);
+}
+
+/* ============================================================
+   PRICE PAGE — MOBILE CSS
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    /* ── Filter: horizontal scrollable pill row ── */
+    .filter-and-cards {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px;
+    }
+
+    .filter-panel {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding-top: 0 !important;
+        gap: 8px !important;
+        padding-bottom: 4px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .filter-panel::-webkit-scrollbar { display: none; }
+
+    .filter-btn {
+        flex-shrink: 0 !important;
+        width: auto !important;
+        padding: 0 14px !important;
+        height: 36px !important;
+        font-size: 10px !important;
+        letter-spacing: 1px !important;
+        white-space: nowrap;
+    }
+
+    .filter-btn img {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    /* ── Deal cards area ── */
+    .deal-cards-area {
+        padding-top: 0 !important;
+        width: 100%;
+    }
+
+    /* ── Deal cards: centered single column ── */
+    .deal-cards-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .best-deal-card {
+        width: 100% !important;
+        max-width: 400px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ── Product charts: single column ── */
+    .product-charts-row,
+    .product-charts-row.cols-2,
+    .product-charts-row.cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ── Category header ── */
+    .cat-header {
+        margin: 16px 0 6px 0;
+        padding: 6px 12px;
+    }
+
+    .cat-header-label {
+        font-size: 11px !important;
+        letter-spacing: 2px !important;
+    }
+
+    /* ── Section titles ── */
+    .section-title-price {
+        font-size: 16px !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    /* ── Trend filters: center on mobile ── */
+    .trend-filters {
+        align-self: center !important;
+        justify-content: center;
+    }
+
+    /* ── Carousel: hidden on mobile ── */
+    .price-carousel-section {
+        display: none !important;
+    }
+
+    /* ── Fix chart container height — remove dead space ── */
+    #chart-box,
+    #chart-spread,
+    #chart-seller-count {
+        height: auto !important;
+        min-height: 0 !important;
+    }
+}
+
+/* ============================================================
+   SELLER PAGE — MOBILE CSS
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    /* ── Section 1: Stack seller bars + donut vertically ── */
+    .seller-top-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+        font-size: 11px !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    .section-subtitle {
+        font-size: 10px !important;
+    }
+
+    /* ── Scorecard: single column on mobile ── */
+    .scorecard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    .scorecard-card {
+        padding: 16px 14px !important;
+        gap: 10px !important;
+    }
+
+    .scorecard-name {
+        font-size: 12px !important;
+    }
+
+    .scorecard-trust {
+        font-size: 9px !important;
+        padding: 2px 7px !important;
+    }
+
+    /* ── Cheapest seller cards: single column ── */
+    .cheapest-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .cheap-price {
+        font-size: 18px !important;
+    }
+
+    .cheap-product {
+        font-size: 13px !important;
+    }
+
+    /* ── Rating legend rows compact ── */
+    .rating-legend-row {
+        gap: 6px !important;
+    }
+
+    .rating-legend-label {
+        min-width: 65px !important;
+    }
+
+    .rating-legend-name {
+        font-size: 10px !important;
+    }
+}
+
+/* ── Sidebar mobile fix ── */
+@media (max-width: 768px) {
+    .sidebar {
+        padding-top: 56px;
+        height: 100vh;
+        overflow-y: scroll !important;
+        -webkit-overflow-scrolling: touch;
+        justify-content: space-between;
+    }
+
+    .sidebar-nav {
+        flex: 0 0 auto !important;
+    }
+
+    /* Group last-updated + footer together at the bottom */
+    .sidebar-footer {
+        margin-top: auto;
+        flex-shrink: 0;
+    }
+
+    .last-updated-wrap {
+        flex-shrink: 0;
+    }
+
+
+    .main-content {
+        margin-left: 0;
+        padding: 4.5rem 1rem 5.5rem 1rem;
+    }
+}

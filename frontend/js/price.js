@@ -1,8 +1,8 @@
 /* ============================================================
-   price.js — Price Analysis page (fixed)
-   Key fix: category headers use .cat-header class, NOT inline
-   border-left/right which caused the bracket rendering bug.
+   price.js — Price Analysis page
    ============================================================ */
+
+function isMobile() { return window.innerWidth <= 768; }
 
 const CAT_COLORS = { laptop:'#667eea', phone:'#11998e', camera:'#f7971e' };
 
@@ -37,6 +37,12 @@ const PLOTLY_BASE = {
     yaxis: { gridcolor:'rgba(255,255,255,0.05)', tickfont:{ size:10, color:'rgba(255,255,255,0.5)' } }
 };
 
+/* Helper: format ISO date to "26 May" */
+function fmtDate(isoStr) {
+    const [y, m, d] = isoStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-NZ', { day:'2-digit', month:'short' });
+}
+
 let selectedCategory = 'All';
 let allData = {};
 
@@ -60,8 +66,8 @@ function setCategory(cat) {
    1. BEST DEAL SPARKLINE CARDS
    ════════════════════════════════════════════════════════════ */
 function renderDealCards() {
-    const stats    = allData.stats || [];
-    const trendRaw = allData.trend || [];
+    const stats     = allData.stats || [];
+    const trendRaw  = allData.trend || [];
     const container = document.getElementById('deal-cards-row');
 
     const cheapest = stats.map(r => ({
@@ -94,8 +100,10 @@ function renderDealCards() {
         return;
     }
 
-    // Update grid columns based on deal count
-    container.style.gridTemplateColumns = `repeat(${Math.min(deals.length, 3)}, 1fr)`;
+    /* On mobile always single column regardless of deal count */
+    container.style.gridTemplateColumns = isMobile()
+        ? '1fr'
+        : `repeat(${Math.min(deals.length, 3)}, 1fr)`;
 
     container.innerHTML = deals.map((deal, i) => {
         const cat   = deal.category;
@@ -161,7 +169,6 @@ function renderDealCards() {
 
 /* ════════════════════════════════════════════════════════════
    2. PER-PRODUCT LINE CHARTS
-   Fix: use .cat-header class only, no inline border-left/right
    ════════════════════════════════════════════════════════════ */
 function renderProductCharts() {
     const trendRaw  = allData.trend || [];
@@ -181,11 +188,14 @@ function renderProductCharts() {
         const products = [...new Set(filtered.filter(d => d.category === cat).map(d => d.product_name))];
         if (!products.length) return;
 
-        const color    = CAT_COLORS[cat] || '#FF6B6B';
-        const catIcon  = CAT_SECTION_ICONS[cat] || '';
-        const colClass = products.length === 1 ? 'cols-1' : products.length === 2 ? 'cols-2' : 'cols-3';
+        const color   = CAT_COLORS[cat] || '#FF6B6B';
+        const catIcon = CAT_SECTION_ICONS[cat] || '';
 
-        /* Key fix: use data-color attribute instead of inline border */
+        /* On mobile always single column */
+        const colClass = isMobile()
+            ? 'cols-1'
+            : (products.length === 1 ? 'cols-1' : products.length === 2 ? 'cols-2' : 'cols-3');
+
         html += `
         <div class="cat-header" data-color="${color}">
             <div class="cat-header-line" style="background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08));"></div>
@@ -200,7 +210,6 @@ function renderProductCharts() {
 
     container.innerHTML = html || '<p style="color:gray;text-align:center;padding:40px 0;">No data for selected range.</p>';
 
-    // Render each product chart
     cats.forEach(cat => {
         const products = [...new Set(filtered.filter(d => d.category === cat).map(d => d.product_name))];
         products.forEach(product => {
@@ -234,43 +243,43 @@ function renderProductCharts() {
                     <span>${product}</span>
                     <span class="product-chart-badge" style="color:${badgeColor};">${badge}</span>
                 </div>
-                <div id="${divId}-plot" style="height:280px;"></div>`;
+                <div id="${divId}-plot" style="height:${isMobile() ? 220 : 280}px;"></div>`;
 
-            const dates  = rows.map(d => d.snapshot_date);
-            const prices = rows.map(d => parseFloat(d.avg_price));
-            const yMin   = Math.min(...prices), yMax = Math.max(...prices);
-            const pad    = (yMax - yMin) * 0.15 || yMax * 0.05;
+            /* Fix: format x-axis as "26 May" not raw ISO */
+            const dates        = rows.map(d => d.snapshot_date);
+            const displayDates = dates.map(fmtDate);
+            const prices       = rows.map(d => parseFloat(d.avg_price));
+            const yMin = Math.min(...prices), yMax = Math.max(...prices);
+            const pad  = (yMax - yMin) * 0.15 || yMax * 0.05;
 
             Plotly.newPlot(`${divId}-plot`, [{
-                x: dates, y: prices,
+                x: displayDates,
+                y: prices,
                 type:'scatter', mode:'lines+markers',
-                line:   { 
-                    color, 
-                    width:2.5,
-                    shape:'spline',
-                    smoothing:1.2
-                },
-                marker: { size:8, color, line: { width: 2, color } },
+                line:   { color, width:2.5, shape:'spline', smoothing:1.2 },
+                marker: { size: isMobile() ? 5 : 8, color, line:{ width:2, color } },
                 fill:'tozeroy', fillcolor:`rgba(${r},${g},${b},0.12)`,
                 hovertemplate:`<b>${product}</b><br>%{x}<br>$%{y:,.2f}<extra></extra>`
             }], {
                 ...PLOTLY_BASE,
-                height: 320,
-                margin: { t:10, b:90, l:70, r:30 },
+                height: isMobile() ? 220 : 320,
+                margin: isMobile()
+                    ? { t:10, b:60, l:55, r:10 }
+                    : { t:10, b:90, l:70, r:30 },
                 xaxis: {
                     ...PLOTLY_BASE.xaxis,
-                    type: 'category',
+                    type:'category',
                     tickangle: -45,
-                    tickvals: dates,
-                    range: [-0.5, dates.length - 0.5]
+                    tickvals: displayDates,
+                    range: [-0.5, displayDates.length - 0.5]
                 },
                 yaxis: {
                     ...PLOTLY_BASE.yaxis,
-                    tickprefix: '$',
-                    range: [yMin - pad, yMax + pad]
+                    tickprefix:'$',
+                    range:[yMin - pad, yMax + pad]
                 },
                 showlegend: false,
-                plot_bgcolor: 'rgba(255,255,255,0.01)',
+                plot_bgcolor:  'rgba(255,255,255,0.01)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             }, { responsive:true, displayModeBar:false });
         });
@@ -281,7 +290,7 @@ function renderProductCharts() {
    3. BOX PLOT
    ════════════════════════════════════════════════════════════ */
 function renderBoxPlot() {
-    const data = allData.priceRange || [];
+    const data     = allData.priceRange || [];
     const filtered = selectedCategory === 'All' ? data : data.filter(d => d.category === selectedCategory);
     const products = [...new Set(filtered.map(d => d.product_name))];
 
@@ -296,8 +305,11 @@ function renderBoxPlot() {
             };
         }),
         {
-            ...PLOTLY_BASE, height:400,
-            margin:{ t:30, b:80, l:60, r:20 },
+            ...PLOTLY_BASE,
+            height: isMobile() ? 340 : 400,
+            margin: isMobile()
+                ? { t:20, b:130, l:55, r:10 }
+                : { t:30, b:80,  l:60, r:20 },
             xaxis:{ ...PLOTLY_BASE.xaxis, tickangle:-45 },
             yaxis:{ ...PLOTLY_BASE.yaxis, tickprefix:'$', title:{ text:'Price (NZD)', font:{ color:'rgba(255,255,255,0.4)' } } },
             showlegend:false
@@ -315,15 +327,15 @@ function renderCarousel() {
     const yesterday = allData.yesterday || [];
     const week      = allData.week      || [];
 
-    const fStats   = selectedCategory === 'All' ? stats   : stats.filter(d => d.category === selectedCategory);
-    const f7d      = selectedCategory === 'All' ? stats7d : stats7d.filter(d => d.category === selectedCategory);
-    const fYest    = selectedCategory === 'All' ? yesterday : yesterday.filter(d => d.category === selectedCategory);
-    const fWeek    = selectedCategory === 'All' ? week      : week.filter(d => d.category === selectedCategory);
+    const fStats = selectedCategory === 'All' ? stats     : stats.filter(d => d.category === selectedCategory);
+    const f7d    = selectedCategory === 'All' ? stats7d   : stats7d.filter(d => d.category === selectedCategory);
+    const fYest  = selectedCategory === 'All' ? yesterday : yesterday.filter(d => d.category === selectedCategory);
+    const fWeek  = selectedCategory === 'All' ? week      : week.filter(d => d.category === selectedCategory);
 
-    const expRow   = f7d.length   ? f7d.reduce((a,b)   => parseFloat(a.max_price_7d) > parseFloat(b.max_price_7d) ? a : b) : null;
-    const cheapRow = f7d.length   ? f7d.reduce((a,b)   => parseFloat(a.avg_price_7d) < parseFloat(b.avg_price_7d) ? a : b) : null;
-    const compRow  = fStats.length? fStats.reduce((a,b) => parseInt(a.seller_count) > parseInt(b.seller_count) ? a : b) : null;
-    const dealRow  = fStats.length? fStats.reduce((a,b) => parseFloat(a.cheapest_price) < parseFloat(b.cheapest_price) ? a : b) : null;
+    const expRow   = f7d.length    ? f7d.reduce((a,b)    => parseFloat(a.max_price_7d)  > parseFloat(b.max_price_7d)  ? a : b) : null;
+    const cheapRow = f7d.length    ? f7d.reduce((a,b)    => parseFloat(a.avg_price_7d)  < parseFloat(b.avg_price_7d)  ? a : b) : null;
+    const compRow  = fStats.length ? fStats.reduce((a,b) => parseInt(a.seller_count)    > parseInt(b.seller_count)    ? a : b) : null;
+    const dealRow  = fStats.length ? fStats.reduce((a,b) => parseFloat(a.cheapest_price)< parseFloat(b.cheapest_price)? a : b) : null;
 
     function set(valId, subId, val, sub) {
         [valId, valId+'2'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=val; });
@@ -332,38 +344,39 @@ function renderCarousel() {
 
     const fmtNZD = n => `NZD ${parseFloat(n).toLocaleString('en-NZ',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 
-    set('ic-val-expensive',  'ic-sub-expensive',  expRow   ? fmtNZD(expRow.max_price_7d)   : 'N/A', expRow   ? `${expRow.product_name} (7d)`  : '—');
-    set('ic-val-cheapest',   'ic-sub-cheapest',   cheapRow ? fmtNZD(cheapRow.avg_price_7d)  : 'N/A', cheapRow ? `${cheapRow.product_name} (7d)`: '—');
-    set('ic-val-competitive','ic-sub-competitive',compRow  ? `${compRow.seller_count} sellers` : 'N/A', compRow ? compRow.product_name : '—');
-    set('ic-val-best-deal',  'ic-sub-best-deal',  dealRow  ? fmtNZD(dealRow.cheapest_price)  : 'N/A', dealRow ? dealRow.cheapest_seller : '—');
+    set('ic-val-expensive',  'ic-sub-expensive',  expRow   ? fmtNZD(expRow.max_price_7d)    : 'N/A', expRow   ? `${expRow.product_name} (7d)`   : '—');
+    set('ic-val-cheapest',   'ic-sub-cheapest',   cheapRow ? fmtNZD(cheapRow.avg_price_7d)   : 'N/A', cheapRow ? `${cheapRow.product_name} (7d)` : '—');
+    set('ic-val-competitive','ic-sub-competitive',compRow  ? `${compRow.seller_count} sellers`: 'N/A', compRow  ? compRow.product_name             : '—');
+    set('ic-val-best-deal',  'ic-sub-best-deal',  dealRow  ? fmtNZD(dealRow.cheapest_price)   : 'N/A', dealRow  ? dealRow.cheapest_seller          : '—');
 
-    const jumpRow  = fYest.length ? fYest.reduce((a,b) => parseFloat(a.pct_change) > parseFloat(b.pct_change) ? a : b) : null;
-    const dropRow  = fYest.length ? fYest.reduce((a,b) => parseFloat(a.pct_change) < parseFloat(b.pct_change) ? a : b) : null;
+    const jumpRow  = fYest.length ? fYest.reduce((a,b) => parseFloat(a.pct_change)      > parseFloat(b.pct_change)      ? a : b) : null;
+    const dropRow  = fYest.length ? fYest.reduce((a,b) => parseFloat(a.pct_change)      < parseFloat(b.pct_change)      ? a : b) : null;
     const alertRow = fWeek.length ? fWeek.reduce((a,b) => parseFloat(a.pct_change_week) > parseFloat(b.pct_change_week) ? a : b) : null;
     const weekRow  = fWeek.length ? fWeek.reduce((a,b) => parseFloat(a.pct_change_week) < parseFloat(b.pct_change_week) ? a : b) : null;
 
     function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
-    setText('ic-val-jump',   jumpRow  ? `▲ ${parseFloat(jumpRow.pct_change).toFixed(1)}%`              : 'N/A');
-    setText('ic-sub-jump',   jumpRow  ? jumpRow.product_name                                             : 'Need 2+ days');
-    setText('ic-val-drop',   dropRow  ? `▼ ${Math.abs(parseFloat(dropRow.pct_change)).toFixed(1)}%`     : 'N/A');
-    setText('ic-sub-drop',   dropRow  ? dropRow.product_name                                             : 'Need 2+ days');
-    setText('ic-val-alert',  alertRow ? `▲ ${parseFloat(alertRow.pct_change_week).toFixed(1)}%`         : 'N/A');
-    setText('ic-sub-alert',  alertRow ? `${alertRow.product_name} vs last week`                          : 'Need 7+ days');
-    setText('ic-val-weekly', weekRow  ? `▼ ${Math.abs(parseFloat(weekRow.pct_change_week)).toFixed(1)}%`: 'N/A');
-    setText('ic-sub-weekly', weekRow  ? `${weekRow.product_name} vs last week`                           : 'Need 7+ days');
 
-    const ratedRow    = fStats.filter(d=>d.avg_rating).reduce((a,b) => parseFloat(a.avg_rating||0) > parseFloat(b.avg_rating||0) ? a : b, fStats[0]) || null;
-    const reviewedRow = fStats.filter(d=>d.avg_reviews).reduce((a,b) => parseInt(a.avg_reviews||0) > parseInt(b.avg_reviews||0) ? a : b, fStats[0]) || null;
+    setText('ic-val-jump',   jumpRow  ? `▲ ${parseFloat(jumpRow.pct_change).toFixed(1)}%`               : 'N/A');
+    setText('ic-sub-jump',   jumpRow  ? jumpRow.product_name                                              : 'Need 2+ days');
+    setText('ic-val-drop',   dropRow  ? `▼ ${Math.abs(parseFloat(dropRow.pct_change)).toFixed(1)}%`      : 'N/A');
+    setText('ic-sub-drop',   dropRow  ? dropRow.product_name                                              : 'Need 2+ days');
+    setText('ic-val-alert',  alertRow ? `▲ ${parseFloat(alertRow.pct_change_week).toFixed(1)}%`          : 'N/A');
+    setText('ic-sub-alert',  alertRow ? `${alertRow.product_name} vs last week`                           : 'Need 7+ days');
+    setText('ic-val-weekly', weekRow  ? `▼ ${Math.abs(parseFloat(weekRow.pct_change_week)).toFixed(1)}%` : 'N/A');
+    setText('ic-sub-weekly', weekRow  ? `${weekRow.product_name} vs last week`                            : 'Need 7+ days');
+
+    const ratedRow    = fStats.filter(d=>d.avg_rating).reduce((a,b)  => parseFloat(a.avg_rating||0)  > parseFloat(b.avg_rating||0)  ? a : b, fStats[0]) || null;
+    const reviewedRow = fStats.filter(d=>d.avg_reviews).reduce((a,b) => parseInt(a.avg_reviews||0)   > parseInt(b.avg_reviews||0)   ? a : b, fStats[0]) || null;
     const rangeRow    = fStats.length ? fStats.reduce((a,b) => (parseFloat(a.max_price)-parseFloat(a.min_price)) > (parseFloat(b.max_price)-parseFloat(b.min_price)) ? a : b) : null;
 
-    setText('ic-val-rated',    ratedRow    ? `★ ${parseFloat(ratedRow.avg_rating).toFixed(1)}`    : 'N/A');
-    setText('ic-sub-rated',    ratedRow    ? ratedRow.product_name                                 : '—');
-    setText('ic-val-reviewed', reviewedRow ? parseInt(reviewedRow.avg_reviews).toLocaleString()   : 'N/A');
-    setText('ic-sub-reviewed', reviewedRow ? reviewedRow.product_name                             : '—');
+    setText('ic-val-rated',    ratedRow    ? `★ ${parseFloat(ratedRow.avg_rating).toFixed(1)}`   : 'N/A');
+    setText('ic-sub-rated',    ratedRow    ? ratedRow.product_name                                : '—');
+    setText('ic-val-reviewed', reviewedRow ? parseInt(reviewedRow.avg_reviews).toLocaleString()  : 'N/A');
+    setText('ic-sub-reviewed', reviewedRow ? reviewedRow.product_name                            : '—');
     setText('ic-val-range',    rangeRow    ? fmtNZD(parseFloat(rangeRow.max_price)-parseFloat(rangeRow.min_price)) : 'N/A');
-    setText('ic-sub-range',    rangeRow    ? rangeRow.product_name                                : '—');
-    setText('ic-val-sellers',  compRow     ? `${compRow.seller_count} sellers`                    : 'N/A');
-    setText('ic-sub-sellers',  compRow     ? compRow.product_name                                 : '—');
+    setText('ic-sub-range',    rangeRow    ? rangeRow.product_name                               : '—');
+    setText('ic-val-sellers',  compRow     ? `${compRow.seller_count} sellers`                   : 'N/A');
+    setText('ic-sub-sellers',  compRow     ? compRow.product_name                                : '—');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -377,18 +390,30 @@ function renderSpreadAndSellerCount() {
     filtered.forEach(row => {
         const color = CAT_COLORS[row.category] || '#FF6B6B';
         const min = parseFloat(row.min_price), max = parseFloat(row.max_price), avg = parseFloat(row.avg_price);
-        spreadTraces.push({ x:[row.product_name], y:[max-min], base:min, type:'bar', marker:{color,opacity:0.4}, showlegend:false, hovertemplate:`<b>${row.product_name}</b><br>Min:$${min.toLocaleString()}<br>Max:$${max.toLocaleString()}<extra></extra>` });
-        spreadTraces.push({ x:[row.product_name], y:[avg], mode:'markers', type:'scatter', marker:{size:10,color,line:{width:2,color:'white'}}, showlegend:false, hovertemplate:`<b>${row.product_name}</b><br>Avg:$${avg.toLocaleString()}<extra></extra>` });
+        spreadTraces.push({
+            x:[row.product_name], y:[max-min], base:min, type:'bar',
+            marker:{color,opacity:0.4}, showlegend:false,
+            hovertemplate:`<b>${row.product_name}</b><br>Min:$${min.toLocaleString()}<br>Max:$${max.toLocaleString()}<extra></extra>`
+        });
+        spreadTraces.push({
+            x:[row.product_name], y:[avg], mode:'markers', type:'scatter',
+            marker:{size:10,color,line:{width:2,color:'white'}}, showlegend:false,
+            hovertemplate:`<b>${row.product_name}</b><br>Avg:$${avg.toLocaleString()}<extra></extra>`
+        });
     });
 
     Plotly.react('chart-spread', spreadTraces, {
         ...PLOTLY_BASE,
-        title:{ text:'PRICE SPREAD PER PRODUCT', x:0.5, font:{size:13,color:'#F5F73E'} },
-        barmode:'overlay', height:400, margin:{t:50,b:80,l:60,r:20},
-        xaxis:{...PLOTLY_BASE.xaxis,tickangle:-45},
-        yaxis:{...PLOTLY_BASE.yaxis,tickprefix:'$',title:{text:'Price (NZD)',font:{color:'rgba(255,255,255,0.4)'}}},
+        title:{ text:'PRICE SPREAD PER PRODUCT', x:0.5, font:{size: isMobile() ? 11 : 13, color:'#F5F73E'} },
+        barmode:'overlay',
+        height: isMobile() ? 340 : 400,
+        margin: isMobile()
+            ? { t:40, b:130, l:55, r:10 }
+            : { t:50, b:80,  l:60, r:20 },
+        xaxis:{...PLOTLY_BASE.xaxis, tickangle:-45},
+        yaxis:{...PLOTLY_BASE.yaxis, tickprefix:'$', title:{text:'Price (NZD)',font:{color:'rgba(255,255,255,0.4)'}}},
         showlegend:false
-    }, {responsive:true,displayModeBar:false});
+    }, {responsive:true, displayModeBar:false});
 
     Plotly.react('chart-seller-count', [{
         x:    filtered.map(d => d.product_name),
@@ -398,12 +423,15 @@ function renderSpreadAndSellerCount() {
         hovertemplate:'<b>%{x}</b><br>%{y} sellers<extra></extra>'
     }], {
         ...PLOTLY_BASE,
-        title:{ text:'SELLER COUNT PER PRODUCT', x:0.5, font:{size:13,color:'#F5F73E'} },
-        height:400, margin:{t:50,b:80,l:60,r:20},
-        xaxis:{...PLOTLY_BASE.xaxis,tickangle:-45},
-        yaxis:{...PLOTLY_BASE.yaxis,title:{text:'Number of Sellers',font:{color:'rgba(255,255,255,0.4)'}}},
+        title:{ text:'SELLER COUNT PER PRODUCT', x:0.5, font:{size: isMobile() ? 11 : 13, color:'#F5F73E'} },
+        height: isMobile() ? 340 : 400,
+        margin: isMobile()
+            ? { t:40, b:130, l:55, r:10 }
+            : { t:50, b:80,  l:60, r:20 },
+        xaxis:{...PLOTLY_BASE.xaxis, tickangle:-45},
+        yaxis:{...PLOTLY_BASE.yaxis, title:{text:'Number of Sellers',font:{color:'rgba(255,255,255,0.4)'}}},
         showlegend:false
-    }, {responsive:true,displayModeBar:false});
+    }, {responsive:true, displayModeBar:false});
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -464,14 +492,12 @@ function setupDateFilter() {
     toSel.addEventListener('change',   renderProductCharts);
 }
 
-/* ── 6. Last Updated Timestamp ── */
+/* ── Last Updated ── */
 async function loadLastUpdated() {
     const data = await getLastUpdated();
     if (!data || !data[0]?.last_updated) return;
 
     const dateStr = data[0].last_updated.split('T')[0];
-
-    /* Parse date parts directly — avoids UTC vs local timezone shift */
     const [year, month, day] = dateStr.split('-').map(Number);
     const updated = new Date(year, month - 1, day);
 
@@ -484,16 +510,12 @@ async function loadLastUpdated() {
     else if (diffDays === 1) { color = '#f7971e'; ageText = 'Yesterday'; }
     else                     { color = '#FF6B6B'; ageText = `${diffDays}d ago`; }
 
-    const label = updated.toLocaleDateString('en-NZ', {
-        day: '2-digit', month: 'short', year: 'numeric'
-    });
+    const label = updated.toLocaleDateString('en-NZ', { day:'2-digit', month:'short', year:'numeric' });
 
-    /* Update dot — background + CSS variable for pulse glow color */
     const dotEl = document.getElementById('status-dot');
     dotEl.style.background = color;
     dotEl.style.setProperty('--pulse-color', color + '66');
 
-    /* Update date and age text */
     document.getElementById('last-updated-date').textContent = label;
     document.getElementById('last-updated-date').style.color = color;
     document.getElementById('last-updated-age').textContent  = ageText;
@@ -529,4 +551,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderSpreadAndSellerCount();
     initCarousel();
     loadLastUpdated();
+});
+
+/* ── Resize handler ── */
+window.addEventListener('resize', () => {
+    Plotly.Plots.resize('chart-box');
+    Plotly.Plots.resize('chart-spread');
+    Plotly.Plots.resize('chart-seller-count');
 });

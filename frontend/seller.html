@@ -43,7 +43,7 @@
             align-items: start;
         }
 
-        .cat-legend { display: flex; gap: 16px; margin-top: 8px; justify-content: center; }
+        .cat-legend { display: flex; gap: 16px; margin-top: 8px; justify-content: center; flex-wrap: wrap; }
         .cat-legend-item { display: inline-flex; align-items: center; gap: 6px; }
         .cat-dot { width: 10px; height: 10px; border-radius: 50%; }
         .cat-legend-item span { color: gray; font-size: 11px; }
@@ -165,7 +165,6 @@
         @keyframes floatBadge  { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-2px);} }
         @keyframes barFlow     { 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
         @keyframes barFlow2    { 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
-        @keyframes pulseBar    { 0%,100%{opacity:0.7;} 50%{opacity:1;} }
         @keyframes priceGlow   { 0%,100%{text-shadow:0 0 0px rgba(56,239,125,0);} 50%{text-shadow:0 0 12px rgba(56,239,125,0.7);} }
         @keyframes savingsPulse{ 0%,100%{opacity:0.8;} 50%{opacity:1;transform:scale(1.03);} }
     </style>
@@ -179,16 +178,18 @@
         <div class="api-loading-bar-fill"></div>
     </div>
 </div>
+
 <div class="layout">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand"><p>DASHBOARD CATEGORY</p></div>
         <nav class="sidebar-nav">
-            <a href="index.html" class="nav-item"><img src="static/home-icon.png" alt=""/> Home</a>
-            <a href="overview.html" class="nav-item"><img src="static/overview.png" alt=""/> Overview</a>
-            <a href="price.html" class="nav-item"><img src="static/price-analysis.png" alt=""/> Price Analysis</a>
-            <a href="seller.html" class="nav-item active"><img src="static/seller-intelligence.png" alt=""/> Seller Intelligence</a>
+            <a href="index.html"    class="nav-item"><img src="static/home-icon.png"             alt=""/> Home</a>
+            <a href="overview.html" class="nav-item"><img src="static/overview.png"              alt=""/> Overview</a>
+            <a href="price.html"    class="nav-item"><img src="static/price-analysis.png"        alt=""/> Price Analysis</a>
+            <a href="seller.html"   class="nav-item active"><img src="static/seller-intelligence.png" alt=""/> Seller Intelligence</a>
         </nav>
 
         <div class="last-updated-wrap" id="last-updated-wrap">
@@ -196,7 +197,7 @@
             <div class="last-updated-row">
                 <div class="status-dot" id="status-dot" style="background:#444;"></div>
                 <span class="last-updated-date" id="last-updated-date">—</span>
-                <span class="last-updated-age" id="last-updated-age"></span>
+                <span class="last-updated-age"  id="last-updated-age"></span>
             </div>
         </div>
 
@@ -236,29 +237,30 @@
         <hr class="divider"/>
 
         <!-- Section 1: Seller count bars + Rating donut -->
+        <!-- On mobile: stacks to single column via CSS -->
         <div class="seller-top-grid">
             <div>
                 <p class="section-label">Seller Count per Product</p>
-                <div id="seller-bars" style="height:340px;"></div>
+                <div id="seller-bars"></div>
                 <div class="cat-legend" id="cat-legend"></div>
             </div>
             <div>
                 <p class="section-label">Rating Status Distribution</p>
-                <div id="chart-donut" style="height:260px;"></div>
+                <div id="chart-donut"></div>
                 <div id="rating-legend" style="margin-top:12px;"></div>
             </div>
         </div>
 
         <hr class="divider"/>
 
-        <!-- Section 2: Seller Trust Bubble Chart -->
+        <!-- Section 2: Competition vs Price chart -->
         <p class="section-label">Market Competition vs Average Price</p>
         <p class="section-subtitle">Bars = seller count · Red line = avg price (NZD)</p>
-        <div id="chart-bubble" style="height:420px;"></div>
+        <div id="chart-bubble"></div>
 
         <hr class="divider"/>
 
-        <!-- Section 3: Seller Reputation Scorecard — 3 columns -->
+        <!-- Section 3: Seller Reputation Scorecard -->
         <p class="section-label">Seller Reputation Scorecard</p>
         <p class="section-subtitle">Top 3 sellers ranked by trust score</p>
         <div class="scorecard-grid" id="seller-scorecard"></div>
@@ -276,8 +278,23 @@
     </main>
 </div>
 
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+    <a href="index.html"    class="bottom-nav-item"><img src="static/home-icon.png"             alt=""/>Home</a>
+    <a href="overview.html" class="bottom-nav-item"><img src="static/overview.png"              alt=""/>Overview</a>
+    <a href="price.html"    class="bottom-nav-item"><img src="static/price-analysis.png"        alt=""/>Price</a>
+    <a href="seller.html"   class="bottom-nav-item active"><img src="static/seller-intelligence.png" alt=""/>Seller</a>
+</nav>
+
 <script src="js/api.js"></script>
 <script src="js/seller.js"></script>
-<script>function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }</script>
+<script>
+    function toggleSidebar() {
+        const sidebar  = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('visible');
+    }
+</script>
 </body>
 </html>

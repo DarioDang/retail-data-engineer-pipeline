@@ -1,6 +1,10 @@
 /* ============================================================
-   overview.js - Main JS for Overview page of Retail Price Intelligence Dashboard
+   overview.js - Main JS for Overview page
    ============================================================ */
+
+function isMobile() {
+    return window.innerWidth <= 768;
+}
 
 const CATEGORY_COLORS = {
     laptop: '#667eea',
@@ -46,7 +50,6 @@ async function loadDiscountCards() {
         getAvgDiscountToday(),
         getMaxDiscountToday()
     ]);
-
     document.getElementById('val-discounted').textContent =
         countData ? fmt(countData.total) : '0';
     document.getElementById('val-avg-discount').textContent =
@@ -68,7 +71,12 @@ async function loadAvgPriceChart() {
         hovertemplate: '<b>%{x}</b><br>Avg: $%{y:,.2f}<extra></extra>'
     }], {
         ...PLOTLY_BASE,
-        margin: { t: 20, b: 50, l: 60, r: 20 },
+        height: isMobile() ? 220 : undefined,
+        margin: isMobile()
+            ? { t: 10, b: 40, l: 50, r: 10 }
+            : { t: 20, b: 50, l: 60, r: 20 },
+        bargap: 0.3,       /* Fix: tightens bars, removes empty right-side space */
+        bargroupgap: 0.1,
         yaxis: { ...PLOTLY_BASE.yaxis, tickprefix: '$' },
         showlegend: false
     }, { responsive: true, displayModeBar: false });
@@ -98,7 +106,7 @@ async function loadDonutChart() {
         sort: false
     }], {
         ...PLOTLY_BASE,
-        height: 280,
+        height: isMobile() ? 240 : 280,
         margin: { t: 10, b: 10, l: 10, r: 10 },
         showlegend: true,
         legend: {
@@ -157,34 +165,48 @@ async function loadTrendChart() {
             const prices = dates.map(d =>
                 (byDate[d].reduce((a,b) => a+b, 0) / byDate[d].length).toFixed(2)
             );
+
+            /* Fix: format x-axis dates as "26 May" instead of raw "2026-05-26" */
+            const displayDates = dates.map(d => {
+                const [y, m, day] = d.split('-').map(Number);
+                return new Date(y, m - 1, day).toLocaleDateString('en-NZ', {
+                    day: '2-digit', month: 'short'
+                });
+            });
+
             return {
-                x: dates, y: prices, name: cat,
-                type: 'scatter', mode: 'lines+markers',
-                line:   { 
-                    color: CATEGORY_COLORS[cat] || '#999', 
+                x: displayDates,
+                y: prices,
+                name: cat,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {
+                    color: CATEGORY_COLORS[cat] || '#999',
                     width: 2.5,
                     shape: 'spline',
-                    smoothing: 1.2},
-                marker: { 
-                    size: 8, 
-                    color: CATEGORY_COLORS[cat] || '#999', 
-                    line: { width: 2, color: 'white' } 
+                    smoothing: 1.2
+                },
+                marker: {
+                    size: isMobile() ? 5 : 8,
+                    color: CATEGORY_COLORS[cat] || '#999',
+                    line: { width: 2, color: 'white' }
                 },
                 hovertemplate: `<b>${cat}</b><br>%{x}<br>$%{y}<extra></extra>`
             };
         });
 
-        /* Enough bottom margin so x-axis labels don't overlap legend */
         Plotly.react('chart-trend', traces, {
             ...PLOTLY_BASE,
-            height: 440,
-            margin: { t: 60, b: 100, l: 60, r: 20 },
+            height: isMobile() ? 260 : 440,
+            margin: isMobile()
+                ? { t: 20, b: 80, l: 50, r: 10 } 
+                : { t: 80, b: 100, l: 60, r: 20 },
             showlegend: true,
             legend: {
                 orientation: 'h',
                 yanchor: 'bottom', y: 1.02,
-                xanchor: 'left',   x: 0,
-                font: { color: 'rgba(255,255,255,0.6)', size: 11 }
+                xanchor: 'center',   x: 0.5,
+                font: { color: 'rgba(255,255,255,0.6)', size: isMobile() ? 10 : 11 }
             },
             xaxis: {
                 ...PLOTLY_BASE.xaxis,
@@ -196,14 +218,22 @@ async function loadTrendChart() {
                 tickprefix: '$'
             },
             title: {
-                text: `${totalDays < 14 ? 'DAILY' : 'WEEKLY'} VIEW`,
+                text: isMobile() ? '' : `${totalDays < 14 ? 'DAILY' : 'WEEKLY'} VIEW`,
                 x: 0.5, xanchor: 'center',
+                y: 0.98,          
+                yanchor: 'top',   
                 font: { size: 14, color: '#F5F73E' }
-            }
+            },
         }, { responsive: true, displayModeBar: false });
     }
 
     renderTrend();
+    // After the renderTrend function definition, before the event listeners
+    const viewLabel = document.getElementById('trend-view-label');
+    if (viewLabel) {
+        viewLabel.textContent = `${totalDays < 14 ? 'DAILY' : 'WEEKLY'} VIEW`;
+        viewLabel.style.display = isMobile() ? 'block' : 'none';
+    }
     fromSel.addEventListener('change', renderTrend);
     toSel.addEventListener('change',   renderTrend);
 }
@@ -214,8 +244,6 @@ async function loadLastUpdated() {
     if (!data || !data[0]?.last_updated) return;
 
     const dateStr = data[0].last_updated.split('T')[0];
-
-    /* Parse date parts directly — avoids UTC vs local timezone shift */
     const [year, month, day] = dateStr.split('-').map(Number);
     const updated = new Date(year, month - 1, day);
 
@@ -232,12 +260,10 @@ async function loadLastUpdated() {
         day: '2-digit', month: 'short', year: 'numeric'
     });
 
-    /* Update dot — background + CSS variable for pulse glow color */
     const dotEl = document.getElementById('status-dot');
     dotEl.style.background = color;
     dotEl.style.setProperty('--pulse-color', color + '66');
 
-    /* Update date and age text */
     document.getElementById('last-updated-date').textContent = label;
     document.getElementById('last-updated-date').style.color = color;
     document.getElementById('last-updated-age').textContent  = ageText;
@@ -251,4 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDonutChart();
     loadTrendChart();
     loadLastUpdated();
+});
+
+/* ── Resize handler ── */
+window.addEventListener('resize', () => {
+    Plotly.Plots.resize('chart-avg-price');
+    Plotly.Plots.resize('chart-donut');
+    Plotly.Plots.resize('chart-trend');
 });

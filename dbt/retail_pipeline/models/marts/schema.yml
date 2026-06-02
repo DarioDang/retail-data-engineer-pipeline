@@ -60,3 +60,25 @@ models:
       - name: avg_price
         tests:
           - not_null
+          
+  - name: mart_ml
+    description: "ML training table with time-series features per product per seller per day. Used for Prophet/ARIMA price forecasting."
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+      - name: store_id
+        tests:
+          - not_null
+      - name: ds
+        description: "Snapshot date — Prophet's required date column name"
+        tests:
+          - not_null
+      - name: y
+        description: "Price — Prophet's required target column name"
+        tests:
+          - not_null
+      - name: category
+        tests:
+          - accepted_values:
+              values: ['laptop', 'phone', 'camera']

@@ -281,7 +281,7 @@ function renderProductCharts() {
                 showlegend: false,
                 plot_bgcolor:  'rgba(255,255,255,0.01)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
-            }, { responsive:true, displayModeBar:false });
+            }, { responsive:true, displayModeBar:false, staticPlot: true   });
         });
     });
 }
@@ -314,7 +314,7 @@ function renderBoxPlot() {
             yaxis:{ ...PLOTLY_BASE.yaxis, tickprefix:'$', title:{ text:'Price (NZD)', font:{ color:'rgba(255,255,255,0.4)' } } },
             showlegend:false
         },
-        { responsive:true, displayModeBar:false }
+        { responsive:true, displayModeBar:false, staticPlot: true }
     );
 }
 
@@ -413,7 +413,7 @@ function renderSpreadAndSellerCount() {
         xaxis:{...PLOTLY_BASE.xaxis, tickangle:-45},
         yaxis:{...PLOTLY_BASE.yaxis, tickprefix:'$', title:{text:'Price (NZD)',font:{color:'rgba(255,255,255,0.4)'}}},
         showlegend:false
-    }, {responsive:true, displayModeBar:false});
+    }, {responsive:true, displayModeBar:false, staticPlot: true  });
 
     Plotly.react('chart-seller-count', [{
         x:    filtered.map(d => d.product_name),
@@ -431,7 +431,7 @@ function renderSpreadAndSellerCount() {
         xaxis:{...PLOTLY_BASE.xaxis, tickangle:-45},
         yaxis:{...PLOTLY_BASE.yaxis, title:{text:'Number of Sellers',font:{color:'rgba(255,255,255,0.4)'}}},
         showlegend:false
-    }, {responsive:true, displayModeBar:false});
+    }, {responsive:true, displayModeBar:false, staticPlot: true  });
 }
 
 /* ════════════════════════════════════════════════════════════

@@ -75,7 +75,7 @@ function renderSellerBars(data) {
         },
         showlegend: false,
         bargap: 0.3
-    }, { responsive:true, displayModeBar:false });
+    }, { responsive:true, displayModeBar:false, staticPlot: true   });
 
     document.getElementById('cat-legend').innerHTML =
         Object.entries(CAT_COLORS).map(([cat, color]) => `
@@ -116,7 +116,7 @@ function renderRatingDonut(data) {
             font:      { size: isMobile() ? 13 : 16, color:'white', family:'Space Grotesk' },
             showarrow: false
         }]
-    }, { responsive:true, displayModeBar:false });
+    }, { responsive:true, displayModeBar:false, staticPlot: true   });
 
     const sorted = [...data].sort((a,b) => parseInt(b.count) - parseInt(a.count));
     document.getElementById('rating-legend').innerHTML = sorted.map(row => {
@@ -224,7 +224,7 @@ function renderCompetitionVsPrice(sellerData, statsData) {
         } : undefined,
         showlegend: hasPrices,
         bargap: 0.25, bargroupgap: 0.1
-    }, { responsive:true, displayModeBar:false });
+    }, { responsive:true, displayModeBar:false, staticPlot: true   });
 }
 
 /* ════════════════════════════════════════════════════════════

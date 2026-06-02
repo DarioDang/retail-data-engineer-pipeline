@@ -4,32 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
-    <link rel = "icon" href="static/retail-headpage.png" type="image/png"/>
+    <link rel="icon" href="static/retail-headpage.png" type="image/png"/>
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet"/>
     <style>
-        /* ── Page-specific styles (Home only) ── */
+        body { margin: 0; padding: 0; }
 
-        /* Animated gradient title underline */
+        /* ── Page header ── */
         .section-title-wrapper {
             text-align: center;
             margin: 20px 0 24px 0;
             animation: fadeInDown 0.8s ease forwards;
-        }
-
-        .section-title-badge {
-            display: inline-block;
-            background: rgba(255,107,107,0.1);
-            border: 1px solid rgba(255,107,107,0.3);
-            border-radius: 20px;
-            padding: 4px 14px;
-            color: #FF6B6B;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
         }
 
         .section-title-main {
@@ -62,24 +48,44 @@
             animation: expandLine 1s ease forwards;
         }
 
-        .underline-bar-right {
-            background: linear-gradient(90deg, #FF6B6B, transparent);
+        .underline-bar-right { background: linear-gradient(90deg, #FF6B6B, transparent); }
+        .underline-dot { width: 6px; height: 6px; border-radius: 50%; background: #FF6B6B; }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            color: gray;
+            font-size: 14px;
         }
 
-        .underline-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #FF6B6B;
+        .stats-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* About section */
+        .stats-item img {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .stats-sep {
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* ── About section ── */
         .about-border {
             border-left: 3px solid #FF6B6B;
             padding-left: 12px;
             margin-bottom: 16px;
         }
- 
+
         .about-label {
             color: rgba(255,255,255,0.85);
             font-size: 13px;
@@ -88,7 +94,7 @@
             text-transform: uppercase;
             margin: 0;
         }
- 
+
         .about-text {
             color: gray;
             text-align: justify;
@@ -96,8 +102,46 @@
             font-size: 14px;
             margin-bottom: 12px;
         }
- 
-        /* Pipeline section */
+
+        /* ── Navigation guide ── */
+        .nav-guide-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .nav-guide-badge {
+            background: linear-gradient(90deg, #FF6B6B, #f7971e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .nav-guide-title {
+            background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-guide-sub {
+            color: rgba(255,255,255,0.4);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* ── Pipeline ── */
         .pipeline-title {
             display: flex;
             align-items: center;
@@ -105,7 +149,7 @@
             gap: 12px;
             margin-bottom: 24px;
         }
- 
+
         .pipeline-title h2 {
             font-size: 28px;
             font-weight: 800;
@@ -119,7 +163,7 @@
             margin: 0;
             text-transform: uppercase;
         }
- 
+
         .pipeline-flow {
             display: flex;
             align-items: center;
@@ -165,31 +209,138 @@
             padding: 0 20px;
             margin-bottom: 24px;
         }
- 
-        /* Stats bar */
-        .stats-bar {
-            text-align: center;
-            color: gray;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-top: 12px;
+
+        /* ════════════════════════════════════════
+           MOBILE — index.html specific
+           ════════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Page title */
+            .section-title-main {
+                font-size: 20px !important;
+                letter-spacing: 1.5px !important;
+            }
+
+            .section-title-wrapper p {
+                font-size: 13px !important;
+            }
+
+            /* Stats bar: 2×2 grid */
+            .stats-bar {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px 8px !important;
+                justify-items: center;
+                margin-top: 14px;
+            }
+
+            /* Hide the | separators on mobile */
+            .stats-sep {
+                display: none !important;
+            }
+
+            .stats-item {
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 20px;
+                padding: 6px 12px;
+                font-size: 11px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* About text */
+            .about-text {
+                font-size: 13px !important;
+                text-align: left !important;
+            }
+
+            /* Nav guide */
+            .nav-guide-title {
+                font-size: 22px !important;
+            }
+
+            .nav-guide-sub {
+                font-size: 13px !important;
+            }
+
+            /* How it works cards: single column, shorter */
+            .how-card-inner {
+                min-height: 220px !important;
+                padding: 16px !important;
+            }
+
+            .how-card-title {
+                font-size: 15px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .how-card-list {
+                font-size: 12px !important;
+            }
+
+            .how-card-list li {
+                margin-bottom: 4px !important;
+            }
+
+            /* Pipeline: vertical stack */
+            .pipeline-flow {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 0 !important;
+                padding: 8px 0 !important;
+            }
+
+            .pipeline-step {
+                padding: 14px 20px !important;
+                display: flex !important;
+                flex-direction: column !important;   /* ← column not row */
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                width: 100% !important;
+                max-width: 280px !important;
+                background: rgba(255,255,255,0.02) !important;
+                border-radius: 10px !important;
+                margin-bottom: 0 !important;
+                gap: 6px !important;
+            }
+
+            .pipeline-step img {
+                width: 44px !important;
+                height: 44px !important;
+                flex-shrink: 0 !important;
+            }
+
+            .pipeline-step p {
+                margin-top: 0 !important;
+                text-align: center !important;
+            }
+
+            /* Downward arrow between steps */
+            .pipeline-arrow {
+                font-size: 20px !important;
+                padding: 0 !important;
+                margin: 4px 0 !important;
+                transform: rotate(90deg) !important;
+                display: block !important;
+                animation: moveArrowDown 1.2s ease-in-out infinite !important;
+            }
+
+            .pipeline-title h2 {
+                font-size: 20px !important;
+                letter-spacing: 1.5px !important;
+            }
+
+            .pipeline-title img {
+                width: 26px !important;
+                height: 26px !important;
+            }
         }
- 
-        .stats-bar img {
-            width: 20px;
-            height: 20px;
-            vertical-align: middle;
-            margin-right: 4px;
-        }
- 
-        .stats-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        @keyframes moveArrowDown {
+            0%   { transform: rotate(90deg) translateX(0px);  opacity: 0.3; }
+            50%  { transform: rotate(90deg) translateX(8px);  opacity: 1; }
+            100% { transform: rotate(90deg) translateX(0px);  opacity: 0.3; }
         }
     </style>
 </head>
@@ -202,29 +353,26 @@
         <div class="api-loading-bar-fill"></div>
     </div>
 </div>
+
 <div class="layout">
-    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-    <aside class = "sidebar" id="sidebar">
-        <div class = "sidebar-brand">
-            <p>DASHBOARD CATEGORY</p>
-        </div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><p>DASHBOARD CATEGORY</p></div>
 
         <nav class="sidebar-nav">
             <a href="index.html" class="nav-item active">
-                <img src="static/home-icon.png" alt="Home"/>
-                Home
+                <img src="static/home-icon.png" alt="Home"/> Home
             </a>
             <a href="overview.html" class="nav-item">
-                <img src="static/overview.png" alt="Overview"/>
-                Overview
+                <img src="static/overview.png" alt="Overview"/> Overview
             </a>
             <a href="price.html" class="nav-item">
-                <img src="static/price-analysis.png" alt="Price Analysis"/>
-                Price Analysis
+                <img src="static/price-analysis.png" alt="Price Analysis"/> Price Analysis
             </a>
             <a href="seller.html" class="nav-item">
-                <img src="static/seller-intelligence.png" alt="Seller Intelligence"/>
-                Seller Intelligence
+                <img src="static/seller-intelligence.png" alt="Seller Intelligence"/> Seller Intelligence
             </a>
         </nav>
 
@@ -233,12 +381,12 @@
             <div class="last-updated-row">
                 <div class="status-dot" id="status-dot" style="background:#444;"></div>
                 <span class="last-updated-date" id="last-updated-date">—</span>
-                <span class="last-updated-age" id="last-updated-age"></span>
+                <span class="last-updated-age"  id="last-updated-age"></span>
             </div>
         </div>
-        
+
         <div class="sidebar-footer">
-            <div class = "footer-profile-row">
+            <div class="footer-profile-row">
                 <div class="footer-avatar">DD</div>
                 <div>
                     <p class="footer-name">Dario Dang</p>
@@ -247,13 +395,13 @@
             </div>
             <div class="footer-divider"></div>
             <div class="footer-links">
-                <a class ="footer-link github" href="https://github.com/DarioDang" target="_blank">
-                   <span class="footer-link-icon">
+                <a class="footer-link github" href="https://github.com/DarioDang" target="_blank">
+                    <span class="footer-link-icon">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#e6edf3">
                             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
                         </svg>
                     </span>
-                    <span class="footer-link-text">GitHub</span> 
+                    <span class="footer-link-text">GitHub</span>
                 </a>
                 <a class="footer-link linkedin" href="https://www.linkedin.com/in/dario-dang-89049020a/" target="_blank">
                     <span class="footer-link-icon">
@@ -272,13 +420,12 @@
             </div>
         </div>
     </aside>
- 
-    <!-- ── MOBILE TOGGLE ───────────────────────────────────── -->
+
     <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
- 
-    <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+
+    <!-- ── MAIN CONTENT ── -->
     <main class="main-content">
- 
+
         <!-- Header -->
         <div class="section-title-wrapper">
             <h2 class="section-title-main">RETAIL PRICE DASHBOARD</h2>
@@ -287,36 +434,37 @@
                 <div class="underline-dot"></div>
                 <div class="underline-bar underline-bar-right"></div>
             </div>
-            <p style="color: gray; font-size: 16px; text-align: center;">
+            <p style="color:gray; font-size:16px; text-align:center;">
                 Monitor and analyze product prices across retailers in New Zealand
             </p>
             <br/>
+            <!-- Stats bar: 4 items, collapses to 2×2 on mobile -->
             <div class="stats-bar">
                 <span class="stats-item">
                     <img src="static/google-shopping.png" alt=""/> Google Shopping
                 </span>
-                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-sep">|</span>
                 <span class="stats-item">
                     <img src="static/products.png" alt=""/> 8 Products
                 </span>
-                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-sep">|</span>
                 <span class="stats-item">
                     <img src="static/daily-update.png" alt=""/> Daily Updates
                 </span>
-                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span class="stats-sep">|</span>
                 <span class="stats-item">
                     <img src="static/new-zealand-flag.png" alt=""/> New Zealand
                 </span>
             </div>
         </div>
- 
+
         <hr class="divider"/>
- 
+
         <!-- About Section -->
         <div class="about-border">
             <p class="about-label">About This Dashboard</p>
         </div>
- 
+
         <p class="about-text">
             This dashboard tracks and analyzes real-time product prices from Google Shopping
             across 8 popular consumer electronics in New Zealand, covering laptops, smartphones,
@@ -344,42 +492,17 @@
             demonstrating skills across the full data engineering stack from raw API
             ingestion through to an interactive analytics dashboard.
         </p>
- 
+
         <hr class="divider"/>
- 
+
         <!-- Navigation Guide -->
-        <div style="text-align:center; margin-bottom: 24px;">
-            <span style="
-                background: linear-gradient(90deg, #FF6B6B, #f7971e);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                font-size: 9px;
-                font-weight: 800;
-                letter-spacing: 4px;
-                text-transform: uppercase;
-                display: block;
-                margin-bottom: 8px;
-            ">NAVIGATION GUIDE</span>
-            <p style="
-                background: linear-gradient(270deg, #FF6B6B, #667eea, #11998e, #f7971e, #FF6B6B);
-                background-size: 300% 300%;
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                animation: gradientShift 4s ease infinite;
-                font-size: 30px;
-                font-weight: 800;
-                margin: 0 0 8px 0;
-                letter-spacing: 0.5px;
-                text-align: center;
-            ">How It Works</p>
-            <p style="color: rgba(255,255,255,0.4); font-size: 15px; margin: 0;">
-                Simply navigate to the section of your choice using the sidebar.
-            </p>
+        <div class="nav-guide-header">
+            <span class="nav-guide-badge">NAVIGATION GUIDE</span>
+            <p class="nav-guide-title">How It Works</p>
+            <p class="nav-guide-sub">Simply navigate to the section of your choice using the sidebar.</p>
         </div>
- 
-        <!-- How it works cards -->
+
+        <!-- How it works cards — grid-3 collapses to 1 col on mobile via global CSS -->
         <div class="grid-3">
             <div class="how-card-wrapper">
                 <div class="how-card-inner">
@@ -398,8 +521,8 @@
                     </ul>
                 </div>
             </div>
- 
-            <div class="how-card-wrapper" style="animation-delay: 0.5s;">
+
+            <div class="how-card-wrapper" style="animation-delay:0.5s;">
                 <div class="how-card-inner">
                     <div class="how-card-title">
                         <img src="static/price-analysis.png" width="30" alt="Price Analysis"/>
@@ -416,8 +539,8 @@
                     </ul>
                 </div>
             </div>
- 
-            <div class="how-card-wrapper" style="animation-delay: 1s;">
+
+            <div class="how-card-wrapper" style="animation-delay:1s;">
                 <div class="how-card-inner">
                     <div class="how-card-title">
                         <img src="static/seller-intelligence.png" width="30" alt="Seller Intelligence"/>
@@ -435,15 +558,15 @@
                 </div>
             </div>
         </div>
- 
+
         <hr class="divider"/>
- 
+
         <!-- Data Pipeline -->
         <div class="pipeline-title">
             <img src="static/data-pipeline.png" width="35" alt="Pipeline"/>
             <h2>DATA PIPELINE</h2>
         </div>
- 
+
         <div class="pipeline-flow">
             <div class="pipeline-step">
                 <img src="static/serpapi-icon.png" alt="SerpAPI"/>
@@ -470,23 +593,28 @@
                 <p><b>dbt</b>Transformations</p>
             </div>
         </div>
- 
+
         <hr class="divider"/>
- 
         <p class="copyright">© 2026 Retail Price Dashboard</p>
- 
+
     </main>
 </div>
- 
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-    }
-</script>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+    <a href="index.html"    class="bottom-nav-item active"><img src="static/home-icon.png"             alt=""/>Home</a>
+    <a href="overview.html" class="bottom-nav-item"><img src="static/overview.png"              alt=""/>Overview</a>
+    <a href="price.html"    class="bottom-nav-item"><img src="static/price-analysis.png"        alt=""/>Price</a>
+    <a href="seller.html"   class="bottom-nav-item"><img src="static/seller-intelligence.png"   alt=""/>Seller</a>
+</nav>
+
 <script src="js/api.js"></script>
 <script>
     function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
+        const sidebar  = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('visible');
     }
 
     async function loadLastUpdated() {

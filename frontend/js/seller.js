@@ -1,10 +1,8 @@
 /* ============================================================
-   seller.js — Seller Intelligence (full 4-section version)
-   Section 1: Horizontal bar + donut   (existing)
-   Section 2: Bubble chart             (NEW — rating-by-seller)
-   Section 3: Reputation scorecard     (existing)
-   Section 4: Cheapest per category    (NEW — cheapest-seller-per-category)
+   seller.js — Seller Intelligence (mobile responsive version)
    ============================================================ */
+
+function isMobile() { return window.innerWidth <= 768; }
 
 const CAT_COLORS = { laptop:'#667eea', phone:'#11998e', camera:'#f7971e' };
 
@@ -21,7 +19,7 @@ const PLOTLY_BASE = {
 };
 
 /* ════════════════════════════════════════════════════════════
-   1. SELLER COUNT — Plotly horizontal bar chart
+   1. SELLER COUNT — horizontal bar chart
    ════════════════════════════════════════════════════════════ */
 function renderSellerBars(data) {
     const container = document.getElementById('seller-bars');
@@ -33,9 +31,15 @@ function renderSellerBars(data) {
     const sorted   = [...data].sort((a,b) => parseInt(a.seller_count) - parseInt(b.seller_count));
     const maxCount = Math.max(...sorted.map(d => parseInt(d.seller_count)));
 
+    /* On mobile: shorten product names to avoid overflow */
+    const labels = sorted.map(d => isMobile()
+        ? d.product_name.replace('Samsung Galaxy', 'Samsung').replace('MacBook Air', 'MacBook')
+        : d.product_name
+    );
+
     Plotly.newPlot('seller-bars', [{
         x:            sorted.map(d => parseInt(d.seller_count)),
-        y:            sorted.map(d => d.product_name),
+        y:            labels,
         type:         'bar',
         orientation:  'h',
         marker: {
@@ -45,7 +49,7 @@ function renderSellerBars(data) {
         },
         text:         sorted.map(d => d.seller_count),
         textposition: 'outside',
-        textfont:     { color:'rgba(255,255,255,0.6)', size:11, family:'Space Grotesk' },
+        textfont:     { color:'rgba(255,255,255,0.6)', size:10, family:'Space Grotesk' },
         customdata:   sorted.map(d => {
             const pct   = parseInt(d.seller_count) / maxCount;
             const level = pct >= 0.7 ? '🔥 HIGH' : pct >= 0.4 ? '⚡ MED' : '🌱 LOW';
@@ -54,16 +58,18 @@ function renderSellerBars(data) {
         hovertemplate: '<b>%{y}</b><br>%{customdata}<br>Sellers: %{x}<extra></extra>'
     }], {
         ...PLOTLY_BASE,
-        height: 340,
-        margin: { t:10, b:30, l:140, r:60 },
+        height: isMobile() ? 280 : 340,
+        margin: isMobile()
+            ? { t:10, b:30, l:110, r:40 }
+            : { t:10, b:30, l:140, r:60 },
         xaxis: {
             gridcolor: 'rgba(255,255,255,0.05)',
             tickfont:  { size:10, color:'rgba(255,255,255,0.4)' },
             zeroline:  false,
-            title:     { text:'Number of Sellers', font:{ size:11, color:'rgba(255,255,255,0.3)' } }
+            title:     { text:'Number of Sellers', font:{ size:isMobile()?9:11, color:'rgba(255,255,255,0.3)' } }
         },
         yaxis: {
-            tickfont:   { size:11, color:'white', family:'Space Grotesk' },
+            tickfont:   { size: isMobile() ? 9 : 11, color:'white', family:'Space Grotesk' },
             gridcolor:  'rgba(0,0,0,0)',
             automargin: true
         },
@@ -101,13 +107,13 @@ function renderRatingDonut(data) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor:  'rgba(0,0,0,0)',
         font: { color:'rgba(255,255,255,0.6)', family:'Space Grotesk' },
-        height: 260,
+        height: isMobile() ? 200 : 260,
         margin: { t:10, b:10, l:20, r:20 },
         showlegend: false,
         annotations: [{
             text:      `<b>${total.toLocaleString()}</b><br>listings`,
             x: 0.5, y: 0.5,
-            font:      { size:16, color:'white', family:'Space Grotesk' },
+            font:      { size: isMobile() ? 13 : 16, color:'white', family:'Space Grotesk' },
             showarrow: false
         }]
     }, { responsive:true, displayModeBar:false });
@@ -132,7 +138,7 @@ function renderRatingDonut(data) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   3. NEW — SELLER TRUST CHART
+   3. COMPETITION VS PRICE CHART
    ════════════════════════════════════════════════════════════ */
 function renderCompetitionVsPrice(sellerData, statsData) {
     if (!sellerData || !sellerData.length) return;
@@ -141,7 +147,6 @@ function renderCompetitionVsPrice(sellerData, statsData) {
         parseInt(b.seller_count) - parseInt(a.seller_count)
     );
 
-    /* Match avg price from stats if available */
     const prices = sorted.map(row => {
         const match = (statsData||[]).find(s => s.product_name === row.product_name);
         return match ? parseFloat(match.avg_price) : null;
@@ -149,8 +154,14 @@ function renderCompetitionVsPrice(sellerData, statsData) {
 
     const hasPrices = prices.some(p => p !== null);
 
+    /* On mobile shorten labels */
+    const xLabels = sorted.map(d => isMobile()
+        ? d.product_name.replace('Samsung Galaxy', 'Samsung').replace('MacBook Air', 'MacBook')
+        : d.product_name
+    );
+
     const traces = [{
-        x:    sorted.map(d => d.product_name),
+        x:    xLabels,
         y:    sorted.map(d => parseInt(d.seller_count)),
         type: 'bar',
         name: 'Seller Count',
@@ -165,36 +176,34 @@ function renderCompetitionVsPrice(sellerData, statsData) {
 
     if (hasPrices) {
         traces.push({
-            x:    sorted.map(d => d.product_name),
+            x:    xLabels,
             y:    prices,
-            type: 'scatter',
-            mode: 'lines+markers',
+            type: 'scatter', mode: 'lines+markers',
             name: 'Avg Price (NZD)',
             yaxis: 'y2',
             line:   { color:'#FF6B6B', width:2, dash:'dot' },
-            marker: { size:8, color:'#FF6B6B', line:{ width:2, color:'white' } },
+            marker: { size: isMobile() ? 5 : 8, color:'#FF6B6B', line:{ width:2, color:'white' } },
             hovertemplate: '<b>%{x}</b><br>Avg Price: $%{y:,.0f}<extra></extra>'
         });
     }
 
     Plotly.newPlot('chart-bubble', traces, {
         ...PLOTLY_BASE,
-        height: 400,
-        margin: { t:50, b:110, l:60, r:80 },
+        height: isMobile() ? 300 : 400,
+        margin: isMobile()
+            ? { t:40, b:120, l:50, r:60 }
+            : { t:50, b:110, l:60, r:80 },
         barmode: 'group',
         legend: {
             orientation: 'h',
-            x: 1.0,
-            y: 1.12,
-            xanchor: 'right',
-            yanchor: 'top',
+            x: 1.0, y: 1.12,
+            xanchor: 'right', yanchor: 'top',
             font: { color:'rgba(255,255,255,0.6)', size:11 },
-            bgcolor: 'rgba(0,0,0,0)',
-            borderwidth: 0
+            bgcolor: 'rgba(0,0,0,0)', borderwidth: 0
         },
         xaxis: {
             tickangle:  -40,
-            tickfont:   { size:10, color:'rgba(255,255,255,0.6)' },
+            tickfont:   { size: isMobile() ? 9 : 10, color:'rgba(255,255,255,0.6)' },
             gridcolor:  'rgba(255,255,255,0)',
             automargin: true
         },
@@ -205,28 +214,21 @@ function renderCompetitionVsPrice(sellerData, statsData) {
             zeroline:  false
         },
         yaxis2: hasPrices ? {
-            title: {
-                text: 'Avg Price (NZD)',
-                font: { size:11, color:'rgba(238, 44, 5, 0.52)' },
-                standoff: 15      /* pushes title away from tick labels */
-            },
-            overlaying: 'y',
-            side:       'right',
+            title: { text:'Avg Price (NZD)', font:{ size:11, color:'rgba(238,44,5,0.52)' }, standoff:15 },
+            overlaying: 'y', side: 'right',
             tickprefix: '$',
-            tickfont:   { size:10, color:'rgba(238, 39, 39, 0.74)' },
+            tickfont:   { size:10, color:'rgba(238,39,39,0.74)' },
             gridcolor:  'rgba(0,0,0,0)',
             zeroline:   false,
-            tickformat: ',.0f'   
+            tickformat: ',.0f'
         } : undefined,
         showlegend: hasPrices,
-        /* Subtle bar rounding via shape */
-        bargap:     0.25,
-        bargroupgap: 0.1
+        bargap: 0.25, bargroupgap: 0.1
     }, { responsive:true, displayModeBar:false });
 }
 
 /* ════════════════════════════════════════════════════════════
-   4. SELLER REPUTATION SCORECARD — 3 columns
+   4. SELLER REPUTATION SCORECARD
    ════════════════════════════════════════════════════════════ */
 function renderSellerScorecard(data) {
     const container = document.getElementById('seller-scorecard');
@@ -330,7 +332,7 @@ function renderSellerScorecard(data) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   5. NEW — CHEAPEST SELLER PER CATEGORY CARDS
+   5. CHEAPEST SELLER PER CATEGORY CARDS
    ════════════════════════════════════════════════════════════ */
 function renderCheapestSellers(data) {
     const container = document.getElementById('cheapest-sellers');
@@ -375,14 +377,12 @@ function renderCheapestSellers(data) {
     }).join('');
 }
 
-/* ── 6. Last Updated Timestamp ── */
+/* ── Last Updated ── */
 async function loadLastUpdated() {
     const data = await getLastUpdated();
     if (!data || !data[0]?.last_updated) return;
 
     const dateStr = data[0].last_updated.split('T')[0];
-
-    /* Parse date parts directly — avoids UTC vs local timezone shift */
     const [year, month, day] = dateStr.split('-').map(Number);
     const updated = new Date(year, month - 1, day);
 
@@ -395,23 +395,19 @@ async function loadLastUpdated() {
     else if (diffDays === 1) { color = '#f7971e'; ageText = 'Yesterday'; }
     else                     { color = '#FF6B6B'; ageText = `${diffDays}d ago`; }
 
-    const label = updated.toLocaleDateString('en-NZ', {
-        day: '2-digit', month: 'short', year: 'numeric'
-    });
+    const label = updated.toLocaleDateString('en-NZ', { day:'2-digit', month:'short', year:'numeric' });
 
-    /* Update dot — background + CSS variable for pulse glow color */
     const dotEl = document.getElementById('status-dot');
     dotEl.style.background = color;
     dotEl.style.setProperty('--pulse-color', color + '66');
 
-    /* Update date and age text */
     document.getElementById('last-updated-date').textContent = label;
     document.getElementById('last-updated-date').style.color = color;
     document.getElementById('last-updated-age').textContent  = ageText;
 }
 
 /* ════════════════════════════════════════════════════════════
-   INIT — fetch all 3 endpoints in parallel
+   INIT
    ════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
     const [sellerCount, ratingStatus, ratingBySeller, cheapestPerCat, statsData] = await Promise.all([
@@ -428,4 +424,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderSellerScorecard(ratingBySeller);
     renderCheapestSellers(cheapestPerCat);
     loadLastUpdated();
+});
+
+/* ── Resize handler ── */
+window.addEventListener('resize', () => {
+    Plotly.Plots.resize('seller-bars');
+    Plotly.Plots.resize('chart-donut');
+    Plotly.Plots.resize('chart-bubble');
 });

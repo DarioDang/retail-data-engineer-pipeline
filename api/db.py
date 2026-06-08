@@ -24,23 +24,10 @@ def get_db_config() -> dict:
     }
 
 def get_engine():
-    """
-       Create a SQLAlchemy engine with a connection pool.
- 
-        QueuePool keeps a small number of connections open and reuses them,
-        so FastAPI does not open a new connection to RDS on every request.
-        This is important for AWS RDS which has a max-connections limit.
-    
-        pool_size=5   → keep 5 connections open at all times
-        max_overflow=5 → allow up to 5 extra connections under heavy load
-        pool_recycle=1800 → close and reopen connections every 30 min
-                            (prevents "connection gone away" errors on RDS)
-    """
-
     cfg = get_db_config()
     url = (
         f"postgresql://{cfg['user']}:{cfg['password']}"
-        f"@{cfg['host']}:{cfg['port']}/{cfg['db']}"
+        f"@{cfg['host']}:{cfg['port']}/{cfg['db']}?sslmode=require"
     )
 
     return create_engine(

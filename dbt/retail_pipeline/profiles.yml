@@ -39,3 +39,4 @@ retail_pipeline:
       keepalives_idle: 0
       connect_timeout: 10
       search_path: public,staging,marts
+      sslmode: require 

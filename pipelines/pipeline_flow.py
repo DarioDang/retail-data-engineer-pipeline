@@ -26,10 +26,10 @@ def load_env_from_blocks():
     os.environ["SERPAPI_KEY"] = Secret.load("serpapi-key").get()
 
     # Postgres — host/user/db/port are not sensitive, password from block
-    os.environ["POSTGRES_HOST"]     = "retail-pipeline-db.c1esmykkepid.ap-southeast-2.rds.amazonaws.com"
-    os.environ["POSTGRES_USER"]     = "retail_admin"
+    os.environ["POSTGRES_HOST"]     = "ep-proud-queen-a7aoci50.ap-southeast-2.aws.neon.tech"
+    os.environ["POSTGRES_USER"]     = "neondb_owner"
     os.environ["POSTGRES_PASSWORD"] = Secret.load("postgres-password").get()
-    os.environ["POSTGRES_DB"]       = "retail_warehouse"
+    os.environ["POSTGRES_DB"]       = "neondb"
     os.environ["POSTGRES_PORT"]     = "5432"
 
 # ── Tasks ──────────────────────────────────────────────────────────────────────

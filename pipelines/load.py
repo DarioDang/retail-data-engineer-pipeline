@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
-load_dotenv()
+load_dotenv(override=False)
 
 logging.basicConfig(
     level=logging.INFO,

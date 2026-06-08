@@ -31,6 +31,7 @@ def get_postgres_engine():
         f"{os.getenv('POSTGRES_HOST')}:"
         f"{os.getenv('POSTGRES_PORT')}/"
         f"{os.getenv('POSTGRES_DB')}"
+        f"?sslmode=require"
     )
 
 # ── Check if Date Already Loaded ───────────────────────────────────────────────
@@ -151,6 +152,7 @@ def run_load(date: str = None):
                 f"{os.getenv('POSTGRES_HOST')}:"
                 f"{os.getenv('POSTGRES_PORT')}/"
                 f"{os.getenv('POSTGRES_DB')}"
+                f"?sslmode=require"
             )
         ),
         dataset_name="raw_shopping"

@@ -18,6 +18,8 @@ psycopg2-binary = "*"
 plotly = "*"
 pandas = "*"
 sqlalchemy = "*"
+matplotlib = "*"
+seaborn = "*"
 
 [dev-packages]
 

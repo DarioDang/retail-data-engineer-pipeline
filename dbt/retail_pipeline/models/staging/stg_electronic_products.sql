@@ -122,29 +122,77 @@ cleaned AS (
 ),
 
 -- ── Product name normalization ─────────────────────────────────────────────
--- Maps product name variations to canonical names
--- Add new mappings here whenever a product query changes
+-- Maps listings to canonical product names based on the ACTUAL LISTING TITLE,
+-- not the SerpAPI search query (product_name). This is critical: SerpAPI's
+-- "related products" matching can return a different model/generation/brand
+-- under the same search query (e.g. searching "DJI Osmo Action" can return
+-- "DJI Osmo Action 5 Pro", "DJI Osmo Pocket 3", or even unrelated products).
+--
+-- Each rule requires the title to confidently identify the exact tracked
+-- product/generation, and explicitly excludes known contaminant patterns
+-- (other generations, other product lines, accessories, wrong brands).
+--
+-- Rows that don't confidently match any tracked product are dropped (see
+-- final WHERE clause) rather than mislabeled under the wrong product.
 normalized AS (
     SELECT
         *,
         CASE
-            -- DJI Osmo Action variants → canonical name
-            WHEN LOWER(product_name) LIKE '%dji osmo action%' THEN 'DJI Osmo Action'
-            -- GoPro variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%gopro hero%'      THEN 'GoPro Hero 13'
-            -- iPhone variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%iphone 15%'       THEN 'iPhone 15'
-            -- Samsung variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%galaxy s24%'      THEN 'Samsung Galaxy S24'
-            WHEN LOWER(product_name) LIKE '%galaxy a54%'      THEN 'Samsung Galaxy A54'
-            -- MacBook variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%macbook air m3%'  THEN 'MacBook Air M3'
-            -- Dell variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%dell xps 13%'     THEN 'Dell XPS 13'
-            -- HP variants (future proofing)
-            WHEN LOWER(product_name) LIKE '%hp spectre%'      THEN 'HP Spectre x360'
-            -- Default — keep original
-            ELSE product_name
+            -- DJI Osmo Action — exclude other Osmo generations/lines
+            WHEN LOWER(title) LIKE '%osmo action%'
+                 AND LOWER(title) NOT LIKE '%osmo action 4%'
+                 AND LOWER(title) NOT LIKE '%osmo action 5%'
+                 AND LOWER(title) NOT LIKE '%osmo action 6%'
+                 AND LOWER(title) NOT LIKE '%pocket%'
+                 AND LOWER(title) NOT LIKE '%360%'
+                THEN 'DJI Osmo Action'
+
+            -- GoPro Hero 13 — exclude other GoPro lines/accessories
+            WHEN (LOWER(title) LIKE '%hero 13%' OR LOWER(title) LIKE '%hero13%')
+                 AND LOWER(title) NOT LIKE '%max%'
+                 AND LOWER(title) NOT LIKE '%lens%'
+                 AND LOWER(title) NOT LIKE '%hero 9-13%'
+                 AND LOWER(title) NOT LIKE '%hero9-13%'
+                THEN 'GoPro Hero 13'
+
+            -- iPhone 15 — base model (adjust if Pro/Plus should be tracked separately)
+            WHEN LOWER(title) LIKE '%iphone 15%'
+                THEN 'iPhone 15'
+
+            -- Samsung Galaxy S24 — exclude Ultra/Plus variants
+            WHEN LOWER(title) LIKE '%galaxy s24%'
+                 AND LOWER(title) NOT LIKE '%s24 ultra%'
+                 AND LOWER(title) NOT LIKE '%s24+%'
+                 AND LOWER(title) NOT LIKE '%s24 plus%'
+                THEN 'Samsung Galaxy S24'
+
+            -- Samsung Galaxy A54 — exclude wrong-brand contamination (e.g. OPPO A54)
+            WHEN LOWER(title) LIKE '%galaxy a54%'
+                 AND LOWER(title) NOT LIKE '%oppo%'
+                THEN 'Samsung Galaxy A54'
+
+            -- MacBook Air M3 — exclude other chip generations and MacBook Pro
+            WHEN LOWER(title) LIKE '%macbook air%'
+                 AND LOWER(title) LIKE '%m3%'
+                 AND LOWER(title) NOT LIKE '%macbook pro%'
+                 AND LOWER(title) NOT LIKE '%m1%'
+                 AND LOWER(title) NOT LIKE '%m2%'
+                 AND LOWER(title) NOT LIKE '%m4%'
+                 AND LOWER(title) NOT LIKE '%m5%'
+                THEN 'MacBook Air M3'
+
+            -- Dell XPS 13 — exclude XPS 13 Plus (different model line)
+            WHEN LOWER(title) LIKE '%dell xps 13%'
+                 AND LOWER(title) NOT LIKE '%xps 13 plus%'
+                THEN 'Dell XPS 13'
+
+            -- HP Spectre x360 — require both "spectre" and "x360"
+            WHEN LOWER(title) LIKE '%hp spectre%'
+                 AND LOWER(title) LIKE '%x360%'
+                THEN 'HP Spectre x360'
+
+            -- No confident match — drop via WHERE clause below
+            ELSE NULL
         END AS product_name_normalized
     FROM cleaned
 )
@@ -152,7 +200,7 @@ normalized AS (
 SELECT
     record_id,
     product_id,
-    product_name_normalized  AS product_name, 
+    product_name_normalized  AS product_name,
     category,
     title,
     price,
@@ -173,3 +221,4 @@ SELECT
     ingested_at,
     snapshot_date
 FROM normalized
+WHERE product_name_normalized IS NOT NULL  -- drop rows that don't confidently match a tracked product

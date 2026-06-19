@@ -20,6 +20,13 @@ models:
       - name: product_name
         tests:
           - not_null
+          - accepted_values:
+              values: ['DJI Osmo Action', 'GoPro Hero 13', 'iPhone 15', 
+                        'Samsung Galaxy S24', 'Samsung Galaxy A54', 
+                        'MacBook Air M3', 'Dell XPS 13', 'HP Spectre x360']
+      - name: title
+        tests:
+          - not_null
       - name: category
         tests:
           - not_null

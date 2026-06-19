@@ -63,7 +63,7 @@ with_features AS (
         -- Discount info
         discount_pct,
         old_price,
-        CASE WHEN discount_pct IS NOT NULL THEN 1 ELSE 0 END AS is_on_sale,
+        CASE WHEN discount_pct IS NOT NULL AND discount_pct > 0 THEN 1 ELSE 0 END AS is_on_sale,
 
         -- Engagement
         rating,

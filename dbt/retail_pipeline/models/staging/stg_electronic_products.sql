@@ -99,11 +99,32 @@ cleaned AS (
         -- Condition: standardised to lowercase, null = new item
         LOWER(TRIM(second_hand_condition))          AS condition,
 
-        -- Derived: clean boolean for new vs used
+        -- Derived: clean boolean for new vs used, from the structured field
         CASE
             WHEN second_hand_condition IS NULL THEN true
             ELSE false
         END  AS is_new_condition,
+
+        -- Title-based condition detection — second_hand_condition is not
+        -- reliably populated by SerpAPI for all sellers. Many refurbished/
+        -- used listings only signal their condition in the title text
+        -- (e.g. "iPhone 15 128GB Pink Refurbished Excellent Grade"),
+        -- with second_hand_condition left NULL. This catches those.
+        CASE
+            WHEN LOWER(title) LIKE '%refurbished%'
+                 OR LOWER(title) LIKE '%a grade%'
+                 OR LOWER(title) LIKE '%b grade%'
+                 OR LOWER(title) LIKE '%like new%'
+                 OR LOWER(title) LIKE '%excellent grade%'
+                 OR LOWER(title) LIKE '%good grade%'
+                 OR LOWER(title) LIKE '%open box%'
+                 OR LOWER(title) LIKE '%renewed%'
+                 OR LOWER(title) LIKE '%pre-owned%'
+                 OR LOWER(title) LIKE '%preowned%'
+                 OR LOWER(title) LIKE '%used%'
+                THEN true
+            ELSE false
+        END AS is_used_or_refurb_title,
 
         -- IQR bounds for auditing
         ROUND(lower_bound::numeric, 2)  AS price_lower_bound,
@@ -130,7 +151,8 @@ cleaned AS (
 --
 -- Each rule requires the title to confidently identify the exact tracked
 -- product/generation, and explicitly excludes known contaminant patterns
--- (other generations, other product lines, accessories, wrong brands).
+-- (other generations, other product lines, accessories, wrong brands,
+-- and higher/lower SKU tiers like Pro/Pro Max/Ultra).
 --
 -- Rows that don't confidently match any tracked product are dropped (see
 -- final WHERE clause) rather than mislabeled under the wrong product.
@@ -155,8 +177,10 @@ normalized AS (
                  AND LOWER(title) NOT LIKE '%hero9-13%'
                 THEN 'GoPro Hero 13'
 
-            -- iPhone 15 — base model (adjust if Pro/Plus should be tracked separately)
+            -- iPhone 15 — base model only, exclude Pro/Pro Max/Plus tiers
             WHEN LOWER(title) LIKE '%iphone 15%'
+                 AND LOWER(title) NOT LIKE '%iphone 15 pro%'
+                 AND LOWER(title) NOT LIKE '%iphone 15 plus%'
                 THEN 'iPhone 15'
 
             -- Samsung Galaxy S24 — exclude Ultra/Plus variants
@@ -214,6 +238,7 @@ SELECT
     multiple_sources,
     condition,
     is_new_condition,
+    is_used_or_refurb_title,
     price_lower_bound,
     price_upper_bound,
     is_price_too_high,
@@ -221,4 +246,6 @@ SELECT
     ingested_at,
     snapshot_date
 FROM normalized
-WHERE product_name_normalized IS NOT NULL  -- drop rows that don't confidently match a tracked product
+WHERE
+    product_name_normalized IS NOT NULL    -- drop rows that don't confidently match a tracked product
+    AND is_used_or_refurb_title = false    -- drop refurbished/used listings detected via title

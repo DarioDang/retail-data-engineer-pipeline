@@ -7,12 +7,9 @@
 ============================================================= */
 
 /* Auto-detect environment — localhost uses local API, production uses Render */
-const API_BASE = window.location.hostname === 'localhost' || 
-                 window.location.hostname === '127.0.0.1' ||
-                 window.location.hostname === '[::1]' ||
-                 window.location.hostname === ''
-    ? 'http://localhost:8000'
-    : 'https://retail-price-api.onrender.com';
+const API_BASE = window.location.hostname === 'retail-price-intelligence.netlify.app'
+    ? 'https://retail-price-api.onrender.com'
+    : 'http://localhost:8000';
 
 /* ── Helper ───────────────────────────────────────────────────
     All fetch calls go through this function.

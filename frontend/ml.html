@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ML Price Forecasting</title>
+    <link rel="icon" href="static/price-analysis.png" type="image/png"/>
+    <link rel="stylesheet" href="css/style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        .main-content { padding-top: 1.5rem; }
+
+        /* ── Page-level centering ── */
+        .page-header,
+        .page-subtitle,
+        .tier-strip,
+        .model-info-banner,
+        .forecast-header,
+        .chart-label,
+        .chart-sub,
+        .copyright { 
+            text-align: center; 
+        }
+
+        /* ── Tier legend ── */
+        .tier-strip { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+        }
+        .tier-badge { 
+            display: flex; 
+            align-items: center; 
+            gap: 7px; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+        }
+        .tier-badge.tier-a { background: rgba(56,239,125,0.1);  border: 1px solid rgba(56,239,125,0.35);  color: #38ef7d; }
+        .tier-badge.tier-b { background: rgba(247,151,30,0.1);  border: 1px solid rgba(247,151,30,0.35);  color: #f7971e; }
+        .tier-badge.tier-c { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.35); color: #FF6B6B; }
+        .tier-dot { 
+            width: 7px; 
+            height: 7px; 
+            border-radius: 50%; 
+            animation: pulseDot 2s ease-in-out infinite; 
+        }
+        .tier-a .tier-dot { background: #38ef7d; }
+        .tier-b .tier-dot { background: #f7971e; }
+        .tier-c .tier-dot { background: #FF6B6B; }
+
+        /* ── Model info banner ── */
+        .model-info-banner { 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.07); 
+            border-radius: 10px; 
+            padding: 14px 20px; 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 16px; 
+            flex-wrap: wrap; 
+        }
+        .mib-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            gap: 2px; 
+        }
+        .mib-label { 
+            font-size: 9px; 
+            font-weight: 700; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            color: rgba(255,255,255,0.3); 
+        }
+        .mib-value { 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: white; 
+        }
+        .mib-divider { 
+            width: 1px; 
+            height: 32px; 
+            background: rgba(255,255,255,0.08); 
+        }
+
+        /* ── Section header ── */
+        .forecast-header { 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            margin-bottom: 16px; 
+            gap: 12px; 
+        }
+        .forecast-title { 
+            font-size: 13px; 
+            font-weight: 800; 
+            letter-spacing: 3px; 
+            color: #F5F73E; 
+            text-transform: uppercase; 
+            margin: 0;
+        }
+        .forecast-toggle { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 11px; 
+            color: rgba(255,255,255,0.5); 
+        }
+        .toggle-btn { 
+            padding: 5px 14px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            background: transparent; 
+            color: rgba(255,255,255,0.5); 
+            font-size: 10px; 
+            font-weight: 700; 
+            letter-spacing: 1px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-family: 'Space Grotesk', sans-serif; 
+        }
+        .toggle-btn.active, 
+        .toggle-btn:hover { 
+            border-color: #FF6B6B; 
+            color: #FF6B6B; 
+            background: rgba(255,107,107,0.08); 
+        }
+
+        /* ── Category section ── */
+        .category-section { margin-bottom: 28px; }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .category-icon { 
+            width: 18px; 
+            height: 18px; 
+            object-fit: contain; 
+        }
+
+        .category-label { 
+            font-size: 11px; 
+            font-weight: 800; 
+            letter-spacing: 3px; 
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* ── Product panels grid ── */
+        .product-panels-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .product-panels-grid.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ── Product panel ── */
+        .product-panel {
+            background: linear-gradient(135deg, #1a1d2e, #1E2130);
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+        .product-panel:hover:not(.no-data) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+        }
+        .product-panel.no-data { 
+            cursor: default; 
+            opacity: 0.6; 
+        }
+        .product-panel.expanded {
+            grid-column: 1 / -1;
+            border-color: rgba(255,107,107,0.2);
+        }
+
+        .pp-expand-hint { 
+            position: absolute; 
+            top: 12px; 
+            right: 12px; 
+            font-size: 16px; 
+            color: rgba(255,255,255,0.2); 
+            transition: color 0.2s;
+        }
+
+        .product-panel:hover .pp-expand-hint {
+            color: rgba(255,107,107,0.6);
+        }
+
+        /* Panel header */
+        .pp-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 8px; 
+        }
+        .pp-name { 
+            font-size: 13px; 
+            font-weight: 800; 
+            letter-spacing: 0.5px; 
+            color: white; 
+            text-transform: uppercase; 
+            margin: 0; 
+        }
+        .pp-tier-badge { 
+            font-size: 9px; 
+            font-weight: 700; 
+            letter-spacing: 1.5px; 
+            padding: 3px 8px; 
+            border-radius: 10px; 
+            text-transform: uppercase; 
+        }
+        .pp-tier-badge.a { background: rgba(56,239,125,0.12);  color: #38ef7d; }
+        .pp-tier-badge.b { background: rgba(247,151,30,0.12);   color: #f7971e; }
+
+        /* Panel stats */
+        .pp-stats { 
+            display: flex; 
+            gap: 16px; 
+            margin-bottom: 12px; 
+            flex-wrap: wrap; 
+        }
+        .pp-stat  { display: flex; flex-direction: column; gap: 1px; }
+        .pp-stat-label { 
+            font-size: 9px; 
+            font-weight: 700; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            color: rgba(255,255,255,0.3); 
+        }
+        .pp-stat-value { font-size: 14px; font-weight: 800; color: white; }
+        .pp-stat-value.green  { color: #38ef7d; }
+        .pp-stat-value.orange { color: #f7971e; }
+        .pp-stat-value.red    { color: #FF6B6B; }
+
+        /* Chart area */
+        .pp-chart          { width: 100%; height: 200px; }
+        .pp-chart.expanded { height: 360px; }
+
+        /* Seller note */
+        .pp-seller-note { 
+            margin-top: 8px; 
+            font-size: 10px; 
+            color: rgba(255,255,255,0.3); 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        .pp-seller-dot { 
+            width: 6px; 
+            height: 6px; 
+            border-radius: 50%; 
+            display: inline-block; 
+            flex-shrink: 0; 
+        }
+
+        /* Empty state */
+        .pp-empty { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 160px; 
+            text-align: center; 
+            color: rgba(255,255,255,0.25); 
+            font-size: 12px; 
+            gap: 4px; 
+        }
+
+        /* Skeleton shimmer */
+        .fpc-skeleton { 
+            height: 200px; 
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%); 
+            background-size: 200% 100%; 
+            animation: shimmer 1.5s infinite; 
+            border-radius: 8px; 
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 900px) {
+            .product-panels-grid        { grid-template-columns: repeat(2, 1fr); }
+            .product-panels-grid.cols-2 { grid-template-columns: 1fr; max-width: 100%; }
+        }
+        @media (max-width: 600px) {
+            .product-panels-grid        { grid-template-columns: 1fr; }
+            .model-info-banner          { flex-direction: column; align-items: center; gap: 10px; }
+            .mib-divider                { display: none; }
+            .product-panel.expanded     { grid-column: 1; }
+            .pp-chart.expanded          { height: 260px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="api-loading-overlay" id="api-loading-overlay">
+        <div class="api-loading-spinner"></div>
+        <p class="api-loading-title">🚀 Waking up the server...</p>
+        <p class="api-loading-sub">The API server may be starting up. This usually takes 10–30 seconds on first load.</p>
+        <div class="api-loading-bar-track"><div class="api-loading-bar-fill"></div></div>
+    </div>
+
+    <div class="layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand"><p>DASHBOARD CATEGORY</p></div>
+            <nav class="sidebar-nav">
+                <a href="index.html"    class="nav-item"><img src="static/home-icon.png"           alt=""/> Home</a>
+                <a href="overview.html" class="nav-item"><img src="static/overview.png"            alt=""/> Overview</a>
+                <a href="price.html"    class="nav-item"><img src="static/price-analysis.png"      alt=""/> Price Analysis</a>
+                <a href="ml.html"       class="nav-item active"><img src="static/ml-predict.png" alt=""/> Price Forecasting</a>
+                <a href="seller.html"   class="nav-item"><img src="static/seller-intelligence.png" alt=""/> Seller Intelligence</a>
+            </nav>
+            <div class="last-updated-wrap">
+                <p class="last-updated-label">Last Updated</p>
+                <div class="last-updated-row">
+                    <div class="status-dot" id="status-dot" style="background:#444;"></div>
+                    <span class="last-updated-date" id="last-updated-date">—</span>
+                    <span class="last-updated-age"  id="last-updated-age"></span>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="footer-profile-row">
+                    <div class="footer-avatar">DD</div>
+                    <div><p class="footer-name">Dario Dang</p><p class="footer-title">Data Analyst</p></div>
+                </div>
+                <div class="footer-divider"></div>
+                <div class="footer-links">
+                    <a class="footer-link github" href="https://github.com/DarioDang" target="_blank">
+                        <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#e6edf3"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg></span>
+                        <span class="footer-link-text">GitHub</span>
+                    </a>
+                    <a class="footer-link linkedin" href="https://www.linkedin.com/in/dario-dang-89049020a/" target="_blank">
+                        <span class="footer-link-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+                        <span class="footer-link-text">LinkedIn</span>
+                    </a>
+                    <a class="footer-link portfolio" href="https://dariodang.github.io/" target="_blank">
+                        <span class="footer-link-icon"><img src="static/portfolio-sidebar-icon.png" width="14" height="14" style="vertical-align:middle;"/></span>
+                        <span class="footer-link-text">Portfolio</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+        <main class="main-content">
+            <!-- Header -->
+            <div class="page-header">
+                <img src="static/ml-predict.png" alt="ML" class="page-title-icon"/>
+                <h1 class="page-title-text">PRICE FORECASTING</h1>
+            </div>
+            <p class="page-subtitle">Prophet-based 14-day price forecasts — median MAPE 3.5% across 34 production series</p>
+
+            <!-- Tier legend -->
+            <div class="tier-strip">
+                <div class="tier-badge tier-a"><div class="tier-dot"></div>Tier A — MAPE &lt; 5% (High confidence)</div>
+                <div class="tier-badge tier-b"><div class="tier-dot"></div>Tier B — MAPE 5–15% (Acceptable)</div>
+                <div class="tier-badge tier-c"><div class="tier-dot"></div>Tier C — MAPE &gt; 15% (Indicative only)</div>
+            </div>
+
+            <!-- Model info banner -->
+            <div class="model-info-banner">
+                <div class="mib-item"><span class="mib-label">Model</span><span class="mib-value">Facebook Prophet</span></div>
+                <div class="mib-divider"></div>
+                <div class="mib-item"><span class="mib-label">Training Data</span><span class="mib-value">~63 days per series</span></div>
+                <div class="mib-divider"></div>
+                <div class="mib-item"><span class="mib-label">Forecast Horizon</span><span class="mib-value">14 days forward</span></div>
+                <div class="mib-divider"></div>
+                <div class="mib-item"><span class="mib-label">Retraining</span><span class="mib-value">Every Sunday 8pm NZT</span></div>
+                <div class="mib-divider"></div>
+                <div class="mib-item"><span class="mib-label">Series in Production</span><span class="mib-value" id="mib-series-count">—</span></div>
+                <div class="mib-divider"></div>
+                <div class="mib-item"><span class="mib-label">Last Forecast Run</span><span class="mib-value" id="mib-run-date">—</span></div>
+            </div>
+
+            <hr class="divider"/>
+
+            <!-- Section header with toggle -->
+            <div class="forecast-header">
+                <p class="forecast-title" style="text-align: center;">14-DAY PRICE FORECAST BY PRODUCT</p>
+                <div class="forecast-toggle">
+                    <span>Show:</span>
+                    <button class="toggle-btn active" id="btn-best" onclick="setViewMode('best')">BEST SELLER</button>
+                    <button class="toggle-btn"        id="btn-all"  onclick="setViewMode('all')">ALL SELLERS</button>
+                </div>
+            </div>
+
+            <!-- Category sections — populated by ml.js -->
+            <div id="forecast-sections"></div>
+
+            <hr class="divider"/>
+
+            <!-- All-products overview -->
+            <p class="chart-label">ALL PRODUCTS — AVG FORECAST PRICE (14 DAYS)</p>
+            <p class="chart-sub">Average predicted price across all Tier A/B sellers per product</p>
+            <div id="chart-all-products" style="height:360px;"></div>
+
+            <hr class="divider"/>
+            <p class="copyright">© 2026 Retail Price Intelligence Dashboard</p>
+        </main>
+    </div>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+        <a href="index.html"    class="bottom-nav-item"><img src="static/home-icon.png"           alt=""/>Home</a>
+        <a href="overview.html" class="bottom-nav-item"><img src="static/overview.png"            alt=""/>Overview</a>
+        <a href="price.html"    class="bottom-nav-item"><img src="static/price-analysis.png"      alt=""/>Price</a>
+        <a href="ml.html"       class="bottom-nav-item active"><img src="static/ml-predict.png" alt=""/>ML</a>
+        <a href="seller.html"   class="bottom-nav-item"><img src="static/seller-intelligence.png" alt=""/>Seller</a>
+    </nav>
+
+    <script src="js/api.js"></script>
+    <script src="js/ml.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-backdrop').classList.toggle('visible');
+        }
+
+        async function loadLastUpdated() {
+            const data = await getLastUpdated();
+            if (!data || !data[0]?.last_updated) return;
+            const dateStr  = data[0].last_updated.split('T')[0];
+            const [y,m,d]  = dateStr.split('-').map(Number);
+            const updated  = new Date(y, m-1, d);
+            const today    = new Date(); today.setHours(0,0,0,0);
+            const diffDays = Math.floor((today - updated) / (1000*60*60*24));
+            const color    = diffDays === 0 ? '#38ef7d' : diffDays === 1 ? '#f7971e' : '#FF6B6B';
+            const ageText  = diffDays === 0 ? 'Today'   : diffDays === 1 ? 'Yesterday' : `${diffDays}d ago`;
+            const label    = updated.toLocaleDateString('en-NZ', { day:'2-digit', month:'short', year:'numeric' });
+            document.getElementById('status-dot').style.background        = color;
+            document.getElementById('last-updated-date').textContent      = label;
+            document.getElementById('last-updated-date').style.color      = color;
+            document.getElementById('last-updated-age').textContent       = ageText;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLastUpdated();
+            initMLPage();
+        });
+    </script>
+</body>
+</html>

@@ -369,7 +369,8 @@ def main():
         for f in failed:
             log.warning(f"  {f['product']} / {f['seller']}: {f['error']}")
 
-    return len(failed) == 0
+    failure_rate = len(failed) / max(len(succeeded) + len(failed), 1)
+    return failure_rate < 0.2  # fail only if >20% of series fail
 
 
 if __name__ == '__main__':

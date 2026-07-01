@@ -119,24 +119,77 @@ def cleanup_task():
     engine.dispose()
     logger.info("Cleanup complete")
 
+@task(name="ML: Train Prophet Models", retries = 1, retry_delay_seconds=60)
+def ml_train_task():
+    """
+    train Prophet models for each product-seller series and save them to s3
+    """
+    logger = get_run_logger()
+    logger.info("Runing Prophet training...")
+    result = subprocess.run(
+        ["python", str(BASE_DIR / "ml" / "train.py")],
+        capture_output =True, text=True,
+        cwd=str(BASE_DIR),
+        env = os.environ.copy()
+    )
+
+    if result.stdout:logger.info(result.stdout)
+    if result.stderr: logger.warning(result.stderr)
+    if result.returncode !=0:
+        raise Exception(f"ML training failed: {result.stderr}")
+    logger.info("✅ ML training complete")
+
+@task(name="ML: Generate Forecasts", retries=1, retry_delay_seconds=60)
+def ml_predict_task():
+    logger = get_run_logger()
+    logger.info("Running Prophet forecasting...")
+    result = subprocess.run(
+        ["python", str(BASE_DIR / "ml" / "predict.py")],
+        capture_output=True, text=True,
+        cwd=str(BASE_DIR),
+        env=os.environ.copy()
+    )
+    if result.stdout: logger.info(result.stdout)
+    if result.stderr: logger.warning(result.stderr)
+    if result.returncode != 0:
+        raise Exception(f"ML forecasting failed: {result.stderr}")
+    logger.info("✅ ML forecasting complete")
+
 # ── Main Flow ──────────────────────────────────────────────────────────────────
 @flow(
     name="retail-price-pipeline",
-    description="Daily retail price intelligence: SerpAPI → S3 → Postgres → dbt"
+    description="Daily retail price intelligence: SerpAPI → S3 → Postgres → dbt → ML forecasts"
 )
 def retail_pipeline():
+    from datetime import datetime
+    import pytz
+
     logger = get_run_logger()
     logger.info("🚀 Starting Retail Price Pipeline...")
 
     # Load all secrets first
     load_env_from_blocks()
 
-    # Run tasks sequentially — mirrors Kestra flow
+    # Daily tasks — always run
     ingest_task()
     load_task()
-    cleanup_task() 
+    cleanup_task()
     dbt_run_task()
     dbt_test_task()
+
+    # ML predict — runs daily after dbt
+    ml_predict_task()
+
+    # ML train — runs weekly on Sunday (NZT)
+    nzt = pytz.timezone('Pacific/Auckland')
+    today_nzt = datetime.now(nzt)
+    is_sunday = today_nzt.weekday() == 6  
+
+    if is_sunday:
+        logger.info("Sunday — running weekly model retraining...")
+        ml_train_task()
+    else:
+        logger.info(f"Not Sunday (weekday={today_nzt.weekday()}) — skipping retraining")
 
     logger.info("🎉 Pipeline completed successfully!")
 
@@ -155,20 +208,22 @@ if __name__ == "__main__":
         ],
         job_variables={
             "pip_packages": [
-                "prefect-aws",
-                "dlt[parquet]",
-                "dlt[filesystem]",
-                "dlt[postgres]",
-                "serpapi",
-                "boto3",
-                "pandas",
-                "pyarrow",
-                "sqlalchemy",
-                "psycopg2-binary",
-                "python-dotenv",
-                "pytz",
-                "dbt-core",
-                "dbt-postgres"
+            "prefect-aws",
+            "dlt[parquet]",
+            "dlt[filesystem]",
+            "dlt[postgres]",
+            "serpapi",
+            "boto3",
+            "pandas",
+            "pyarrow",
+            "sqlalchemy",
+            "psycopg2-binary",
+            "python-dotenv",
+            "pytz",
+            "dbt-core",
+            "dbt-postgres",
+            "prophet",          # ← add this
+            "cmdstanpy",        # ← add this (Prophet dependency)
             ]
         }
     )

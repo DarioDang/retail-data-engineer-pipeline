@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import overview, price, seller
+from api.routes import overview, price, seller, forecast
 
 app = FastAPI(
     title = "Retail Price Intelligence API",
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(overview.router, prefix="/api/overview", tags=["Overview"])
 app.include_router(price.router,    prefix="/api/price",    tags=["Price Analysis"])
 app.include_router(seller.router,   prefix="/api/seller",   tags=["Seller Intelligence"])
+app.include_router(forecast.router, prefix="/api/forecast", tags=["ML Forecasts"])
 
 # Healthcheck
 # Render and Railway both ping this endpoint to confirm the service is alive.

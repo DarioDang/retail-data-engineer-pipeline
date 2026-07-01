@@ -222,8 +222,8 @@ if __name__ == "__main__":
             "pytz",
             "dbt-core",
             "dbt-postgres",
-            "prophet",          # ← add this
-            "cmdstanpy",        # ← add this (Prophet dependency)
+            "prophet",          
+            "cmdstanpy",        
             ]
         }
     )

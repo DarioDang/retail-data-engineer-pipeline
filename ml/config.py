@@ -30,6 +30,8 @@ EXCLUDED_SERIES = [
     # Insufficient data
     ('Samsung Galaxy A54', 'TechCrazy'),   # flat price — not a real forecast
     ('Samsung Galaxy S24', 'Kogan.com NZ'), # only 20 training rows
+    # New Seller
+    ('Samsung Galaxy A54', 'eBay - highclassmobile'),
 ]
 
 # Tier 1 threshold 

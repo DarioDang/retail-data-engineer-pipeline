@@ -223,7 +223,8 @@ if __name__ == "__main__":
             "dbt-core",
             "dbt-postgres",
             "prophet",          
-            "cmdstanpy",        
+            "cmdstanpy",
+            "plotly",        
             ]
         }
     )

@@ -352,3 +352,67 @@ MAX_DISCOUNT_TODAY = """
           FROM dev_marts.fact_price_snapshot
       )
 """
+
+# ── ML Forecast Queries ────────────────────────────────────────────────────────
+FORECAST_BY_PRODUCT = """
+    SELECT
+        product_name,
+        seller,
+        forecast_date,
+        forecast_run_date,
+        yhat              AS predicted_price,
+        yhat_lower        AS price_lower,
+        yhat_upper        AS price_upper,
+        mape,
+        confidence_tier
+    FROM dev_marts.mart_forecasts
+    WHERE product_name = :product_name
+      AND confidence_tier IN ('A', 'B')
+    ORDER BY seller, forecast_date
+"""
+
+FORECAST_SUMMARY = """
+    SELECT
+        product_name,
+        confidence_tier,
+        forecast_run_date,
+        MIN(forecast_date)        AS forecast_from,
+        MAX(forecast_date)        AS forecast_to,
+        ROUND(AVG(yhat)::numeric, 2) AS avg_predicted_price,
+        ROUND(MIN(yhat)::numeric, 2) AS min_predicted_price,
+        ROUND(MAX(yhat)::numeric, 2) AS max_predicted_price,
+        COUNT(DISTINCT seller)    AS seller_count,
+        mape
+    FROM dev_marts.mart_forecasts
+    WHERE confidence_tier IN ('A', 'B')
+    GROUP BY product_name, confidence_tier, forecast_run_date, mape
+    ORDER BY product_name
+"""
+
+FORECAST_PRODUCTS = """
+    SELECT DISTINCT product_name
+    FROM dev_marts.mart_forecasts
+    WHERE confidence_tier IN ('A', 'B')
+    ORDER BY product_name
+"""
+
+FORECAST_BEST_SELLER = """
+    SELECT
+        product_name,
+        seller,
+        mape,
+        confidence_tier,
+        forecast_run_date,
+        ROUND(AVG(yhat)::numeric, 2)       AS avg_predicted_price,
+        ROUND(MIN(yhat)::numeric, 2)       AS min_predicted_price,
+        ROUND(MAX(yhat)::numeric, 2)       AS max_predicted_price,
+        MIN(forecast_date)                 AS forecast_from,
+        MAX(forecast_date)                 AS forecast_to
+    FROM dev_marts.mart_forecasts
+    WHERE product_name = :product_name
+      AND confidence_tier IN ('A', 'B')
+    GROUP BY product_name, seller, mape, confidence_tier, forecast_run_date
+    ORDER BY mape ASC
+    LIMIT 1
+"""
+
